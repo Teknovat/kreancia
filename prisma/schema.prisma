@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and merchant management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Will be hashed
+  name      String?
+  role      UserRole @default(MERCHANT)
+
+  // Merchant-specific fields
+  businessName    String?
+  businessAddress String?
+  phone          String?
+
+  // Multi-tenant support
+  tenantId String
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  clients  Client[]
+  credits  Credit[]
+  payments Payment[]
+
+  @@map("users")
+}
+
+// Client model for customer management
+model Client {
+  id      String  @id @default(cuid())
+  name    String
+  email   String?
+  phone   String?
+  address String?
+
+  // Business information
+  businessName String?
+  taxId        String?
+
+  // Credit settings
+  creditLimit    Decimal? @db.Decimal(12, 2)
+  paymentTermDays Int     @default(30)
+
+  // Multi-tenant support
+  tenantId String
+  merchantId String
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  merchant User     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  credits  Credit[]
+  payments Payment[]
+
+  // Indexes
+  @@index([tenantId])
+  @@index([merchantId])
+  @@map("clients")
+}
+
+// Credit model for managing credit transactions
+model Credit {
+  id          String      @id @default(cuid())
+  amount      Decimal     @db.Decimal(12, 2)
+  description String?
+  dueDate     DateTime
+  status      CreditStatus @default(PENDING)
+
+  // Multi-tenant support
+  tenantId String
+  merchantId String
+  clientId   String
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  merchant User      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  // Computed fields (will be calculated)
+  // amountPaid: Sum of related payments
+  // remainingAmount: amount - amountPaid
+
+  // Indexes
+  @@index([tenantId])
+  @@index([merchantId])
+  @@index([clientId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("credits")
+}
+
+// Payment model for tracking payments against credits
+model Payment {
+  id     String  @id @default(cuid())
+  amount Decimal @db.Decimal(12, 2)
+  note   String?
+
+  // Payment method
+  method PaymentMethod @default(CASH)
+
+  // References
+  reference String? // Bank reference, check number, etc.
+
+  // Multi-tenant support
+  tenantId String
+  merchantId String
+  clientId   String
+  creditId   String?
+
+  // Timestamps
+  paidAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  merchant User    @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  client   Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  credit   Credit? @relation(fields: [creditId], references: [id], onDelete: SetNull)
+
+  // Indexes
+  @@index([tenantId])
+  @@index([merchantId])
+  @@index([clientId])
+  @@index([creditId])
+  @@index([paidAt])
+  @@map("payments")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  MERCHANT
+  EMPLOYEE
+}
+
+enum CreditStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CHECK
+  CARD
+  MOBILE_PAYMENT
+  OTHER
+}
