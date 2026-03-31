@@ -17,7 +17,7 @@ const authRoutes = [
   "/login"
 ]
 
-export default auth((req: NextRequest & { auth: any }) => {
+export default auth((req: NextRequest & { auth: unknown }) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
 

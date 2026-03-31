@@ -1,0 +1,413 @@
+{
+  "metadata": {
+    "generated": "2026-04-02",
+    "tool": "Claude Code /sc:index-repo",
+    "project_name": "Kreancia",
+    "description": "Multi-tenant Credit Management System",
+    "framework": "Next.js 15 + TypeScript + PostgreSQL",
+    "token_reduction": {
+      "before": 58000,
+      "after": 3000,
+      "reduction_percent": 94
+    }
+  },
+  "structure": {
+    "src": {
+      "total_files": 85,
+      "app": {
+        "description": "Next.js App Router",
+        "files": 32,
+        "subdirectories": ["(auth)", "api", "clients", "credits", "payments", "dashboard"]
+      },
+      "components": {
+        "description": "React components",
+        "files": 15,
+        "categories": ["ui", "auth", "clients", "client-profile", "layout", "providers"]
+      },
+      "lib": {
+        "description": "Business logic & utilities",
+        "files": 12,
+        "key_services": ["client-service", "credit-service", "payment-service", "auth"]
+      },
+      "hooks": {
+        "description": "Custom React hooks",
+        "files": 4,
+        "hooks": ["useClients", "useCredits", "usePayments", "useDashboard"]
+      },
+      "types": {
+        "description": "TypeScript definitions",
+        "files": 7,
+        "key_types": ["client", "credit", "payment", "auth"]
+      }
+    },
+    "config_files": 13,
+    "documentation_files": 12,
+    "cli_scripts": 6
+  },
+  "entry_points": {
+    "web_app": {
+      "homepage": "src/app/page.tsx",
+      "dashboard": "src/app/dashboard/page.tsx",
+      "layout": "src/app/layout.tsx"
+    },
+    "api_endpoints": [
+      {
+        "path": "/api/health",
+        "file": "src/app/api/health/route.ts",
+        "purpose": "System health check"
+      },
+      {
+        "path": "/api/auth/[...nextauth]",
+        "file": "src/app/api/auth/[...nextauth]/route.ts",
+        "purpose": "NextAuth.js endpoints"
+      },
+      {
+        "path": "/api/clients",
+        "file": "src/app/api/clients/route.ts",
+        "purpose": "Client CRUD operations"
+      },
+      {
+        "path": "/api/clients/[id]",
+        "file": "src/app/api/clients/[id]/route.ts",
+        "purpose": "Individual client operations"
+      },
+      {
+        "path": "/api/credits",
+        "file": "src/app/api/credits/route.ts",
+        "purpose": "Credit management"
+      },
+      {
+        "path": "/api/credits/[id]",
+        "file": "src/app/api/credits/[id]/route.ts",
+        "purpose": "Individual credit operations"
+      },
+      {
+        "path": "/api/payments",
+        "file": "src/app/api/payments/route.ts",
+        "purpose": "Payment processing"
+      },
+      {
+        "path": "/api/payments/[id]",
+        "file": "src/app/api/payments/[id]/route.ts",
+        "purpose": "Individual payment operations"
+      },
+      {
+        "path": "/api/payments/allocate",
+        "file": "src/app/api/payments/allocate/route.ts",
+        "purpose": "FIFO payment allocation"
+      }
+    ],
+    "cli_tools": [
+      {
+        "script": "scripts/create-merchant.ts",
+        "purpose": "Interactive merchant account creation",
+        "npm_command": "npm run create-merchant"
+      },
+      {
+        "script": "scripts/manage-merchants.ts",
+        "purpose": "Account management operations",
+        "npm_command": "npm run manage-merchants"
+      },
+      {
+        "script": "scripts/test-auth.ts",
+        "purpose": "Authentication verification",
+        "npm_command": "npm run test-auth"
+      }
+    ],
+    "database": {
+      "schema": "prisma/schema.prisma",
+      "seeding": "prisma/seed.ts",
+      "migrations": "prisma/migrations/"
+    }
+  },
+  "core_modules": {
+    "authentication": [
+      {
+        "file": "src/lib/auth.ts",
+        "purpose": "NextAuth.js v5 configuration",
+        "exports": ["authOptions", "getServerSession"]
+      },
+      {
+        "file": "src/lib/auth-context.ts",
+        "purpose": "Session management utilities",
+        "exports": ["getAuthenticatedSessionOrRedirect"]
+      },
+      {
+        "file": "src/lib/prisma-rls.ts",
+        "purpose": "Row Level Security wrapper",
+        "exports": ["SecurePrismaClient", "getSecurePrismaClient"],
+        "critical": true
+      },
+      {
+        "file": "src/middleware.ts",
+        "purpose": "Route protection middleware",
+        "exports": ["middleware"]
+      }
+    ],
+    "business_services": [
+      {
+        "file": "src/lib/client-service.ts",
+        "purpose": "Client management operations",
+        "operations": ["CRUD", "search", "validation"]
+      },
+      {
+        "file": "src/lib/credit-service.ts",
+        "purpose": "Credit tracking & calculations",
+        "operations": ["Create", "update", "status management"]
+      },
+      {
+        "file": "src/lib/payment-service.ts",
+        "purpose": "FIFO payment allocation",
+        "operations": ["Payment processing", "automatic allocation"],
+        "critical": true
+      },
+      {
+        "file": "src/lib/client-profile.ts",
+        "purpose": "Client profile aggregations",
+        "operations": ["Statistics", "activity timeline"]
+      }
+    ],
+    "ui_components": {
+      "base_ui": {
+        "location": "src/components/ui/",
+        "components": ["Button", "form controls", "loading states"]
+      },
+      "auth": {
+        "location": "src/components/auth/",
+        "components": ["LogoutButton", "SessionChecker"]
+      },
+      "clients": {
+        "location": "src/components/clients/",
+        "components": ["ClientTable", "SearchFilters"]
+      },
+      "profile": {
+        "location": "src/components/client-profile/",
+        "components": ["Profile tabs", "header", "content"]
+      },
+      "layout": {
+        "location": "src/components/layout/",
+        "components": ["MainLayout", "Header", "Sidebar"]
+      }
+    },
+    "data_types": [
+      {
+        "file": "src/types/client.ts",
+        "purpose": "Client entity types",
+        "interfaces": ["Client", "ClientWithStats", "ClientFilters"]
+      },
+      {
+        "file": "src/types/credit.ts",
+        "purpose": "Credit management types",
+        "interfaces": ["Credit", "CreditStatus", "CreateCreditData"]
+      },
+      {
+        "file": "src/types/payment.ts",
+        "purpose": "Payment processing types",
+        "interfaces": ["Payment", "PaymentAllocation", "PaymentMethod"]
+      },
+      {
+        "file": "src/types/auth.ts",
+        "purpose": "Authentication types",
+        "interfaces": ["Session", "User", "AuthOptions"]
+      }
+    ],
+    "custom_hooks": [
+      {
+        "file": "src/hooks/useClients.ts",
+        "purpose": "Client data fetching",
+        "returns": ["clients", "loading", "error", "mutate"]
+      },
+      {
+        "file": "src/hooks/useCredits.ts",
+        "purpose": "Credit data management",
+        "returns": ["credits", "createCredit", "updateCredit"]
+      },
+      {
+        "file": "src/hooks/usePayments.ts",
+        "purpose": "Payment operations",
+        "returns": ["payments", "createPayment", "allocatePayment"]
+      },
+      {
+        "file": "src/hooks/useDashboard.ts",
+        "purpose": "Dashboard statistics",
+        "returns": ["stats", "recentActivity", "chartData"]
+      }
+    ]
+  },
+  "configuration": [
+    {
+      "file": "package.json",
+      "purpose": "Dependencies & scripts",
+      "key_deps": ["Next.js 15", "Prisma 5.19", "NextAuth v5"]
+    },
+    {
+      "file": "next.config.js",
+      "purpose": "Next.js configuration",
+      "features": ["App router", "image optimization"]
+    },
+    {
+      "file": "tailwind.config.js",
+      "purpose": "Tailwind CSS setup",
+      "features": ["Custom colors", "responsive breakpoints"]
+    },
+    {
+      "file": "tsconfig.json",
+      "purpose": "TypeScript configuration",
+      "features": ["Strict mode", "path aliases"]
+    },
+    {
+      "file": "prisma/schema.prisma",
+      "purpose": "Database schema",
+      "features": ["Multi-tenant RLS", "relationships"]
+    },
+    {
+      "file": "docker-compose.yml",
+      "purpose": "Development database",
+      "features": ["PostgreSQL 16 container"]
+    }
+  ],
+  "documentation": [
+    {
+      "file": "docs/PROJECT_INDEX.md",
+      "purpose": "Navigation hub for all documentation",
+      "coverage": "Complete project overview"
+    },
+    {
+      "file": "docs/architecture/system-overview.md",
+      "purpose": "System architecture",
+      "coverage": "Multi-tenant design decisions"
+    },
+    {
+      "file": "docs/architecture/multi-tenant-rls.md",
+      "purpose": "Row Level Security",
+      "coverage": "Security implementation details"
+    },
+    {
+      "file": "docs/api/api-reference.md",
+      "purpose": "Complete API documentation",
+      "coverage": "All endpoints, schemas, examples"
+    },
+    {
+      "file": "docs/api/api-patterns.md",
+      "purpose": "API design patterns",
+      "coverage": "Conventions, error handling"
+    },
+    {
+      "file": "docs/frontend/component-library.md",
+      "purpose": "Component catalog",
+      "coverage": "Usage patterns, props"
+    },
+    {
+      "file": "docs/business/payment-allocation.md",
+      "purpose": "FIFO system documentation",
+      "coverage": "Algorithm, flows, edge cases"
+    },
+    {
+      "file": "docs/development/workflow-guide.md",
+      "purpose": "Development best practices",
+      "coverage": "Git workflow, testing, patterns"
+    }
+  ],
+  "dependencies": {
+    "critical": [
+      {
+        "name": "next",
+        "version": "15.1.0",
+        "purpose": "Full-stack framework",
+        "features": ["App Router", "Server Components"]
+      },
+      {
+        "name": "typescript",
+        "version": "5.6+",
+        "purpose": "Type safety",
+        "features": ["Strict mode", "path aliases"]
+      },
+      {
+        "name": "@prisma/client",
+        "version": "5.19+",
+        "purpose": "Database ORM",
+        "features": ["Type-safe queries", "migrations"]
+      },
+      {
+        "name": "next-auth",
+        "version": "5.0-beta",
+        "purpose": "Authentication",
+        "features": ["JWT sessions", "credentials"]
+      }
+    ],
+    "important": [
+      {
+        "name": "tailwindcss",
+        "version": "3.4+",
+        "purpose": "Styling framework"
+      },
+      {
+        "name": "framer-motion",
+        "version": "11.11+",
+        "purpose": "Animation library"
+      },
+      {
+        "name": "zod",
+        "version": "3.23+",
+        "purpose": "Schema validation"
+      },
+      {
+        "name": "react-hook-form",
+        "version": "7.66+",
+        "purpose": "Form management"
+      }
+    ]
+  },
+  "architecture_features": {
+    "multi_tenant_security": {
+      "technology": "PostgreSQL Row Level Security",
+      "implementation": "SecurePrismaClient wrapper",
+      "benefits": ["Database-level isolation", "Cannot be bypassed"]
+    },
+    "fifo_payment_allocation": {
+      "algorithm": "First In, First Out",
+      "automation": "Payments allocated to oldest credits first",
+      "audit": "Complete allocation history"
+    },
+    "component_architecture": {
+      "hierarchy": "Base UI → Business → Pages",
+      "patterns": "Server Components + Client hooks",
+      "responsive": "Mobile-first design"
+    },
+    "api_design": {
+      "style": "REST with consistent patterns",
+      "validation": "Zod schemas for all inputs",
+      "error_handling": "Standardized responses"
+    }
+  },
+  "quick_start": {
+    "setup": [
+      "cp .env.local .env",
+      "docker compose up -d"
+    ],
+    "install": [
+      "npm install",
+      "npm run db:generate",
+      "npm run db:migrate",
+      "npm run db:seed"
+    ],
+    "develop": [
+      "npm run dev",
+      "npm run create-merchant"
+    ],
+    "verify": [
+      "npm run type-check",
+      "npm run lint"
+    ]
+  },
+  "statistics": {
+    "source_files": 85,
+    "api_endpoints": 9,
+    "components": 15,
+    "services": 4,
+    "types": 25,
+    "documentation_files": 12,
+    "cli_tools": 3,
+    "migrations": 2
+  }
+}

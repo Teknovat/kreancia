@@ -37,3 +37,37 @@ export async function checkDatabaseConnection(): Promise<boolean> {
 export async function disconnectDatabase(): Promise<void> {
   await prisma.$disconnect()
 }
+
+/**
+ * Helper function to calculate credit status based on business rules
+ */
+export function calculateCreditStatus(
+  remainingAmount: number,
+  dueDate?: Date | null
+): 'OPEN' | 'PAID' | 'OVERDUE' {
+  if (remainingAmount === 0) {
+    return 'PAID'
+  }
+
+  if (dueDate && dueDate < new Date() && remainingAmount > 0) {
+    return 'OVERDUE'
+  }
+
+  return 'OPEN'
+}
+
+// Currency formatting moved to src/lib/utils.ts
+// Import { formatCurrency } from '@/lib/utils' to use the unified function
+
+/**
+ * Type exports for the application
+ */
+export type {
+  Merchant,
+  Client,
+  Credit,
+  Payment,
+  PaymentAllocation,
+  CreditStatus,
+  PaymentMethod,
+} from '@/generated/client'

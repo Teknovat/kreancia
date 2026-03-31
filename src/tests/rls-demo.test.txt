@@ -1,0 +1,333 @@
+/**
+ * Row Level Security Demonstration
+ *
+ * This test file demonstrates how the RLS system works in practice
+ * and can be run to verify the implementation.
+ */
+
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
+import { PrismaClient } from '@/generated/client'
+import { SecurePrismaClient } from '@/lib/prisma-rls'
+import type { SessionContext } from '@/lib/prisma-rls'
+import bcrypt from 'bcryptjs'
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5433/kreancia_dev"
+    }
+  }
+})
+
+// Demo merchants
+let demoMerchant1: { id: string; email: string }
+let demoMerchant2: { id: string; email: string }
+
+describe('RLS Demo: Real-world Scenario', () => {
+  beforeAll(async () => {
+    const hashedPassword = await bcrypt.hash('demopassword', 12)
+
+    // Create two competing businesses
+    demoMerchant1 = await prisma.merchant.create({
+      data: {
+        email: 'acme@corp.com',
+        password: hashedPassword,
+        name: 'John Smith',
+        businessName: 'Acme Corporation',
+        currency: 'TND'
+      }
+    })
+
+    demoMerchant2 = await prisma.merchant.create({
+      data: {
+        email: 'globex@corp.com',
+        password: hashedPassword,
+        name: 'Jane Doe',
+        businessName: 'Globex Corporation',
+        currency: 'TND'
+      }
+    })
+
+    console.log('\n🏢 Created two demo merchants:')
+    console.log(`   - Acme Corporation (${demoMerchant1.id})`)
+    console.log(`   - Globex Corporation (${demoMerchant2.id})`)
+  })
+
+  afterAll(async () => {
+    // Cleanup
+    await prisma.paymentAllocation.deleteMany()
+    await prisma.payment.deleteMany()
+    await prisma.credit.deleteMany()
+    await prisma.client.deleteMany()
+    await prisma.merchant.deleteMany({
+      where: {
+        email: {
+          in: ['acme@corp.com', 'globex@corp.com']
+        }
+      }
+    })
+    await prisma.$disconnect()
+  })
+
+  it('should demonstrate complete tenant isolation', async () => {
+    console.log('\n🔒 Demonstrating Row Level Security...')
+
+    const secureClient = new SecurePrismaClient(prisma)
+
+    // Step 1: Acme Corporation adds clients and data
+    console.log('\n📝 Step 1: Acme Corporation adds clients...')
+
+    const acmeSession: SessionContext = {
+      merchantId: demoMerchant1.id,
+      userId: demoMerchant1.id,
+      email: demoMerchant1.email,
+      businessName: 'Acme Corporation'
+    }
+
+    const acmeDb = await secureClient.withSession(acmeSession)
+
+    // Acme adds clients
+    const acmeClient1 = await acmeDb.client.create({
+      data: {
+        firstName: 'Alice',
+        lastName: 'Johnson',
+        email: 'alice@customer.com',
+        merchantId: demoMerchant1.id
+      }
+    })
+
+    const acmeClient2 = await acmeDb.client.create({
+      data: {
+        firstName: 'Bob',
+        lastName: 'Wilson',
+        email: 'bob@customer.com',
+        merchantId: demoMerchant1.id
+      }
+    })
+
+    console.log(`   ✅ Added Alice Johnson (${acmeClient1.id})`)
+    console.log(`   ✅ Added Bob Wilson (${acmeClient2.id})`)
+
+    // Acme adds credits
+    const acmeCredit = await acmeDb.credit.create({
+      data: {
+        label: 'Invoice #001',
+        totalAmount: 5000,
+        remainingAmount: 5000,
+        status: 'OPEN',
+        merchantId: demoMerchant1.id,
+        clientId: acmeClient1.id
+      }
+    })
+
+    console.log(`   ✅ Added credit for Alice: ${acmeCredit.totalAmount} TND`)
+
+    // Step 2: Globex Corporation adds their own data
+    console.log('\n📝 Step 2: Globex Corporation adds their data...')
+
+    await secureClient.clearSession()
+    const globexSession: SessionContext = {
+      merchantId: demoMerchant2.id,
+      userId: demoMerchant2.id,
+      email: demoMerchant2.email,
+      businessName: 'Globex Corporation'
+    }
+
+    const globexDb = await secureClient.withSession(globexSession)
+
+    // Globex adds clients
+    const globexClient = await globexDb.client.create({
+      data: {
+        firstName: 'Charlie',
+        lastName: 'Brown',
+        email: 'charlie@globexcustomer.com',
+        merchantId: demoMerchant2.id
+      }
+    })
+
+    console.log(`   ✅ Added Charlie Brown (${globexClient.id})`)
+
+    // Globex adds credit
+    const globexCredit = await globexDb.credit.create({
+      data: {
+        label: 'Invoice #G001',
+        totalAmount: 8000,
+        remainingAmount: 8000,
+        status: 'OPEN',
+        merchantId: demoMerchant2.id,
+        clientId: globexClient.id
+      }
+    })
+
+    console.log(`   ✅ Added credit for Charlie: ${globexCredit.totalAmount} TND`)
+
+    // Step 3: Verify isolation - Acme can only see their data
+    console.log('\n🔍 Step 3: Verifying data isolation...')
+
+    await secureClient.clearSession()
+    const acmeDbVerify = await secureClient.withSession(acmeSession)
+
+    const acmeClients = await acmeDbVerify.client.findMany()
+    const acmeCredits = await acmeDbVerify.credit.findMany()
+
+    console.log(`   Acme sees ${acmeClients.length} clients (should be 2):`)
+    acmeClients.forEach(client => {
+      console.log(`      - ${client.firstName} ${client.lastName}`)
+    })
+
+    console.log(`   Acme sees ${acmeCredits.length} credits (should be 1):`)
+    acmeCredits.forEach(credit => {
+      console.log(`      - ${credit.label}: ${credit.totalAmount} TND`)
+    })
+
+    // Step 4: Verify isolation - Globex can only see their data
+    await secureClient.clearSession()
+    const globexDbVerify = await secureClient.withSession(globexSession)
+
+    const globexClients = await globexDbVerify.client.findMany()
+    const globexCreditsAll = await globexDbVerify.credit.findMany()
+
+    console.log(`   Globex sees ${globexClients.length} clients (should be 1):`)
+    globexClients.forEach(client => {
+      console.log(`      - ${client.firstName} ${client.lastName}`)
+    })
+
+    console.log(`   Globex sees ${globexCreditsAll.length} credits (should be 1):`)
+    globexCreditsAll.forEach(credit => {
+      console.log(`      - ${credit.label}: ${credit.totalAmount} TND`)
+    })
+
+    // Step 5: Attempt cross-tenant access (should fail)
+    console.log('\n🚫 Step 5: Testing cross-tenant access prevention...')
+
+    // Acme tries to access Globex's client by ID
+    await secureClient.clearSession()
+    const acmeDbTest = await secureClient.withSession(acmeSession)
+
+    const forbiddenClient = await acmeDbTest.client.findUnique({
+      where: { id: globexClient.id }
+    })
+
+    console.log(`   Acme tries to access Globex's client: ${forbiddenClient ? '❌ SECURITY BREACH' : '✅ ACCESS DENIED'}`)
+
+    // Globex tries to access Acme's credit
+    await secureClient.clearSession()
+    const globexDbTest = await secureClient.withSession(globexSession)
+
+    const forbiddenCredit = await globexDbTest.credit.findUnique({
+      where: { id: acmeCredit.id }
+    })
+
+    console.log(`   Globex tries to access Acme's credit: ${forbiddenCredit ? '❌ SECURITY BREACH' : '✅ ACCESS DENIED'}`)
+
+    // Assertions
+    expect(acmeClients).toHaveLength(2)
+    expect(acmeCredits).toHaveLength(1)
+    expect(globexClients).toHaveLength(1)
+    expect(globexCreditsAll).toHaveLength(1)
+    expect(forbiddenClient).toBeNull()
+    expect(forbiddenCredit).toBeNull()
+
+    // Verify no cross-contamination
+    expect(acmeClients.every(c => c.merchantId === demoMerchant1.id)).toBe(true)
+    expect(globexClients.every(c => c.merchantId === demoMerchant2.id)).toBe(true)
+    expect(acmeCredits.every(c => c.merchantId === demoMerchant1.id)).toBe(true)
+    expect(globexCreditsAll.every(c => c.merchantId === demoMerchant2.id)).toBe(true)
+
+    console.log('\n✅ All security tests passed! Data is properly isolated.')
+  })
+
+  it('should demonstrate complex query isolation', async () => {
+    console.log('\n🔍 Testing complex queries with joins...')
+
+    const secureClient = new SecurePrismaClient(prisma)
+
+    // Test with Acme session
+    const acmeSession: SessionContext = {
+      merchantId: demoMerchant1.id,
+      userId: demoMerchant1.id,
+      email: demoMerchant1.email
+    }
+
+    const acmeDb = await secureClient.withSession(acmeSession)
+
+    // Complex query with joins
+    const creditsWithDetails = await acmeDb.credit.findMany({
+      include: {
+        client: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        merchant: {
+          select: {
+            businessName: true,
+            currency: true
+          }
+        }
+      }
+    })
+
+    console.log(`   Found ${creditsWithDetails.length} credits with full details`)
+    creditsWithDetails.forEach(credit => {
+      console.log(`      - ${credit.label} for ${credit.client.firstName} ${credit.client.lastName}`)
+      console.log(`        Amount: ${credit.totalAmount} ${credit.merchant.currency}`)
+    })
+
+    // All results should belong to Acme
+    expect(creditsWithDetails.every(c => c.merchantId === demoMerchant1.id)).toBe(true)
+    expect(creditsWithDetails.every(c => c.merchant.businessName === 'Acme Corporation')).toBe(true)
+
+    console.log('   ✅ Complex queries properly filtered by RLS')
+  })
+
+  it('should demonstrate transaction isolation', async () => {
+    console.log('\n💳 Testing transaction isolation...')
+
+    const secureClient = new SecurePrismaClient(prisma)
+
+    const acmeSession: SessionContext = {
+      merchantId: demoMerchant1.id,
+      userId: demoMerchant1.id,
+      email: demoMerchant1.email
+    }
+
+    await secureClient.withSession(acmeSession)
+
+    const result = await secureClient.$transaction(async (tx) => {
+      // Create client and credit in same transaction
+      const client = await tx.client.create({
+        data: {
+          firstName: 'Transaction',
+          lastName: 'Test',
+          email: 'transaction@acme.com',
+          merchantId: demoMerchant1.id
+        }
+      })
+
+      const credit = await tx.credit.create({
+        data: {
+          label: 'Transaction Test Credit',
+          totalAmount: 1500,
+          remainingAmount: 1500,
+          status: 'OPEN',
+          merchantId: demoMerchant1.id,
+          clientId: client.id
+        }
+      })
+
+      // Query within transaction should only see Acme's data
+      const allClients = await tx.client.findMany()
+
+      return { client, credit, totalClients: allClients.length }
+    })
+
+    console.log(`   ✅ Transaction created client and credit`)
+    console.log(`   ✅ Transaction saw ${result.totalClients} total clients (all belong to Acme)`)
+
+    expect(result.client.merchantId).toBe(demoMerchant1.id)
+    expect(result.credit.merchantId).toBe(demoMerchant1.id)
+  })
+})

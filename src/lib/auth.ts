@@ -1,11 +1,9 @@
 import NextAuth from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
 import Credentials from "next-auth/providers/credentials"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
-import { PrismaClient } from "@prisma/client"
-import type { DefaultSession, User } from "next-auth"
-import type { JWT } from "next-auth/jwt"
+import { PrismaClient } from "@/generated/client"
+import type { DefaultSession } from "next-auth"
 
 const prisma = new PrismaClient()
 
@@ -14,28 +12,19 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string
-      tenantId: string
-      role: string
+      merchantId: string
       businessName?: string
     } & DefaultSession["user"]
   }
 
   interface User {
     id: string
-    tenantId: string
-    role: string
+    merchantId: string
     businessName?: string
   }
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string
-    tenantId: string
-    role: string
-    businessName?: string
-  }
-}
+// JWT type extension for our custom properties
 
 // Validation schema for sign-in
 const signInSchema = z.object({
@@ -44,7 +33,6 @@ const signInSchema = z.object({
 })
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -70,15 +58,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const { email, password } = result.data
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.merchant.findUnique({
           where: { email },
           select: {
             id: true,
             email: true,
             name: true,
             password: true,
-            role: true,
-            tenantId: true,
             businessName: true,
             createdAt: true
           }
@@ -98,9 +84,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
-          tenantId: user.tenantId,
-          businessName: user.businessName
+          merchantId: user.id, // The user IS the merchant
+          businessName: user.businessName || undefined
         }
       }
     })
@@ -114,8 +99,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Persist user data to token when signing in
       if (user) {
         token.id = user.id
-        token.tenantId = user.tenantId
-        token.role = user.role
+        token.merchantId = user.merchantId
         token.businessName = user.businessName
       }
       return token
@@ -123,8 +107,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       // Send properties to the client
       session.user.id = token.id as string
-      session.user.tenantId = token.tenantId as string
-      session.user.role = token.role as string
+      session.user.merchantId = token.merchantId as string
       session.user.businessName = token.businessName as string
       return session
     }

@@ -5,8 +5,7 @@ export interface AuthUser {
   id: string
   email: string
   name?: string | null
-  tenantId: string
-  role: "ADMIN" | "MERCHANT" | "EMPLOYEE"
+  merchantId: string
   businessName?: string | null
 }
 
@@ -34,6 +33,5 @@ export interface AuthError {
 // Route protection types
 export interface ProtectedRouteProps {
   children: React.ReactNode
-  requireRole?: AuthUser["role"][]
   fallback?: React.ReactNode
 }

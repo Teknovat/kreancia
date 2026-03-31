@@ -3,6 +3,10 @@
     "next/core-web-vitals",
     "next/typescript"
   ],
+  "ignorePatterns": [
+    "src/generated/**/*",
+    "node_modules/**/*"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "error",

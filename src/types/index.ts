@@ -1,40 +1,48 @@
 import {
-  User,
+  Merchant,
   Client,
   Credit,
   Payment,
-  UserRole,
+  PaymentAllocation,
   CreditStatus,
   PaymentMethod
 } from '@/generated/client'
 
 // Re-export Prisma types
 export type {
-  User,
+  Merchant,
   Client,
   Credit,
   Payment,
-  UserRole,
+  PaymentAllocation,
   CreditStatus,
   PaymentMethod
 }
 
 // Extended types with computed fields
-export interface CreditWithPayments extends Credit {
+export interface CreditWithRelations extends Credit {
   client: Client
-  payments: Payment[]
-  amountPaid: number
-  remainingAmount: number
+  merchant: Merchant
+  paymentAllocations: PaymentAllocation[]
 }
 
 export interface ClientWithCredits extends Client {
+  merchant: Merchant
   credits: Credit[]
   totalCredits: number
   totalPaid: number
   totalRemaining: number
 }
 
-export interface UserWithCounts extends User {
+export interface PaymentWithAllocations extends Payment {
+  client: Client
+  merchant: Merchant
+  paymentAllocations: (PaymentAllocation & {
+    credit: Credit
+  })[]
+}
+
+export interface MerchantWithCounts extends Merchant {
   _count: {
     clients: number
     credits: number
@@ -62,7 +70,8 @@ export interface PaginatedResponse<T> {
 
 // Form types
 export interface CreateClientData {
-  name: string
+  firstName: string
+  lastName: string
   email?: string
   phone?: string
   address?: string
@@ -77,14 +86,16 @@ export interface UpdateClientData extends Partial<CreateClientData> {
 }
 
 export interface CreateCreditData {
-  amount: number
+  label: string
+  totalAmount: number
   description?: string
-  dueDate: Date
+  dueDate?: Date
   clientId: string
 }
 
 export interface UpdateCreditData extends Partial<CreateCreditData> {
   id: string
+  remainingAmount?: number
   status?: CreditStatus
 }
 
@@ -93,13 +104,21 @@ export interface CreatePaymentData {
   note?: string
   method: PaymentMethod
   reference?: string
+  paymentDate: Date
   clientId: string
-  creditId?: string
-  paidAt?: Date
 }
 
 export interface UpdatePaymentData extends Partial<CreatePaymentData> {
   id: string
+}
+
+export interface CreatePaymentAllocationData {
+  amount: number
+  allocatedAmount: number
+  paymentId: string
+  creditId: string
+  clientId: string
+  merchantId: string
 }
 
 // Filter and search types
@@ -110,7 +129,7 @@ export interface ClientFilters {
     max?: number
   }
   hasOverdueCredits?: boolean
-  sortBy?: 'name' | 'createdAt' | 'totalCredits'
+  sortBy?: 'firstName' | 'lastName' | 'createdAt' | 'totalCredits'
   sortOrder?: 'asc' | 'desc'
 }
 
@@ -127,24 +146,23 @@ export interface CreditFilters {
     to?: Date
   }
   isOverdue?: boolean
-  sortBy?: 'amount' | 'dueDate' | 'createdAt'
+  sortBy?: 'totalAmount' | 'remainingAmount' | 'dueDate' | 'createdAt'
   sortOrder?: 'asc' | 'desc'
 }
 
 export interface PaymentFilters {
   search?: string
   clientId?: string
-  creditId?: string
   method?: PaymentMethod | PaymentMethod[]
   amount?: {
     min?: number
     max?: number
   }
-  paidAt?: {
+  paymentDate?: {
     from?: Date
     to?: Date
   }
-  sortBy?: 'amount' | 'paidAt' | 'createdAt'
+  sortBy?: 'amount' | 'paymentDate' | 'createdAt'
   sortOrder?: 'asc' | 'desc'
 }
 
@@ -172,11 +190,9 @@ export interface ChartDataPoint {
 }
 
 export interface CreditsByStatus {
-  pending: number
-  partial: number
+  open: number
   paid: number
   overdue: number
-  cancelled: number
 }
 
 export interface PaymentsByMethod {
@@ -192,10 +208,9 @@ export interface PaymentsByMethod {
 export interface AuthUser {
   id: string
   email: string
-  name: string | null
-  role: UserRole
+  name: string
+  currency: string
   businessName: string | null
-  tenantId: string
 }
 
 export interface LoginCredentials {
@@ -207,6 +222,7 @@ export interface RegisterData {
   email: string
   password: string
   name: string
+  currency?: string
   businessName?: string
   businessAddress?: string
   phone?: string
@@ -270,7 +286,6 @@ export interface FormState<T = any> {
 
 // Multi-tenant types
 export interface TenantContext {
-  tenantId: string
   merchantId: string
 }
 
@@ -293,11 +308,15 @@ export type ClickHandler = () => void | Promise<void>
 
 // Status badge colors
 export const creditStatusColors: Record<CreditStatus, string> = {
-  [CreditStatus.PENDING]: 'bg-blue-100 text-blue-800',
-  [CreditStatus.PARTIAL]: 'bg-yellow-100 text-yellow-800',
+  [CreditStatus.OPEN]: 'bg-blue-100 text-blue-800',
   [CreditStatus.PAID]: 'bg-green-100 text-green-800',
   [CreditStatus.OVERDUE]: 'bg-red-100 text-red-800',
-  [CreditStatus.CANCELLED]: 'bg-gray-100 text-gray-800',
+}
+
+export const creditStatusLabels: Record<CreditStatus, string> = {
+  [CreditStatus.OPEN]: 'Ouvert',
+  [CreditStatus.PAID]: 'Payé',
+  [CreditStatus.OVERDUE]: 'En retard',
 }
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = {

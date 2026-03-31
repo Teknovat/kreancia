@@ -9,17 +9,21 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format currency amounts
+ * Format currency amounts with merchant currency support
  */
 export function formatCurrency(
   amount: number | string,
-  currency = 'EUR',
+  currency?: string,
   locale = 'fr-FR'
 ): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
+
+  // Si pas de currency fournie, utiliser TND par défaut (currency principale du système)
+  const finalCurrency = currency || 'TND'
+
   return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency,
+    currency: finalCurrency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(num)
@@ -41,9 +45,14 @@ export function formatNumber(
  */
 export function formatDate(
   date: Date | string,
-  options?: Intl.DateTimeFormatOptions
+  options?: Intl.DateTimeFormatOptions & { relative?: boolean }
 ): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
+
+  if (options?.relative) {
+    return formatRelativeTime(dateObj)
+  }
+
   return new Intl.DateTimeFormat('fr-FR', {
     year: 'numeric',
     month: 'short',

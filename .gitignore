@@ -37,3 +37,5 @@ npm-debug.log*
 
 # Docker volumes (if using local bind mounts)
 /docker/postgres/data/
+
+.playwright-mcp

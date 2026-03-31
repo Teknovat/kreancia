@@ -1,0 +1,449 @@
+/**
+ * Row Level Security Isolation Tests
+ *
+ * These tests verify that the RLS implementation correctly isolates
+ * tenant data and prevents cross-tenant data access.
+ */
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals'
+import { PrismaClient } from '@/generated/client'
+import { SecurePrismaClient, MissingMerchantIdError } from '@/lib/prisma-rls'
+import type { SessionContext } from '@/lib/prisma-rls'
+import bcrypt from 'bcryptjs'
+
+// Test setup
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5433/kreancia_dev"
+    }
+  }
+})
+
+// Test merchants
+let merchant1: { id: string; email: string }
+let merchant2: { id: string; email: string }
+
+// Test clients
+let client1: { id: string }
+let client2: { id: string }
+
+// Session contexts
+let merchant1Context: SessionContext
+let merchant2Context: SessionContext
+
+describe('Row Level Security Implementation', () => {
+  beforeAll(async () => {
+    // Create test merchants
+    const hashedPassword = await bcrypt.hash('testpassword', 12)
+
+    merchant1 = await prisma.merchant.create({
+      data: {
+        email: 'merchant1@test.com',
+        password: hashedPassword,
+        name: 'Merchant 1',
+        businessName: 'Business 1'
+      }
+    })
+
+    merchant2 = await prisma.merchant.create({
+      data: {
+        email: 'merchant2@test.com',
+        password: hashedPassword,
+        name: 'Merchant 2',
+        businessName: 'Business 2'
+      }
+    })
+
+    // Create test clients for each merchant
+    client1 = await prisma.client.create({
+      data: {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@client1.com',
+        merchantId: merchant1.id
+      }
+    })
+
+    client2 = await prisma.client.create({
+      data: {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane@client2.com',
+        merchantId: merchant2.id
+      }
+    })
+
+    // Create session contexts
+    merchant1Context = {
+      merchantId: merchant1.id,
+      userId: merchant1.id,
+      email: merchant1.email,
+      businessName: 'Business 1'
+    }
+
+    merchant2Context = {
+      merchantId: merchant2.id,
+      userId: merchant2.id,
+      email: merchant2.email,
+      businessName: 'Business 2'
+    }
+  })
+
+  afterAll(async () => {
+    // Cleanup test data
+    await prisma.paymentAllocation.deleteMany()
+    await prisma.payment.deleteMany()
+    await prisma.credit.deleteMany()
+    await prisma.client.deleteMany()
+    await prisma.merchant.deleteMany({
+      where: {
+        email: {
+          in: ['merchant1@test.com', 'merchant2@test.com']
+        }
+      }
+    })
+    await prisma.$disconnect()
+  })
+
+  describe('Secure Prisma Client', () => {
+    it('should require a valid merchant session', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Try to use without session - should fail
+      await expect(async () => {
+        const db = await secureClient.withSession({
+          merchantId: '',
+          userId: 'test',
+          email: 'test@test.com'
+        })
+      }).rejects.toThrow(MissingMerchantIdError)
+    })
+
+    it('should set session context correctly', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+      await secureClient.withSession(merchant1Context)
+
+      expect(secureClient.getCurrentMerchantId()).toBe(merchant1.id)
+    })
+
+    it('should clear session context', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+      await secureClient.withSession(merchant1Context)
+      await secureClient.clearSession()
+
+      expect(secureClient.getCurrentMerchantId()).toBeNull()
+    })
+  })
+
+  describe('Merchant Isolation', () => {
+    it('should allow merchants to see only their own record', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 session
+      const db1 = await secureClient.withSession(merchant1Context)
+      const merchant1Data = await db1.merchant.findMany()
+
+      expect(merchant1Data).toHaveLength(1)
+      expect(merchant1Data[0].id).toBe(merchant1.id)
+      expect(merchant1Data[0].email).toBe(merchant1.email)
+
+      // Clear session and switch to Merchant 2
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      const merchant2Data = await db2.merchant.findMany()
+
+      expect(merchant2Data).toHaveLength(1)
+      expect(merchant2Data[0].id).toBe(merchant2.id)
+      expect(merchant2Data[0].email).toBe(merchant2.email)
+    })
+  })
+
+  describe('Client Isolation', () => {
+    it('should allow merchants to see only their clients', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 should only see client 1
+      const db1 = await secureClient.withSession(merchant1Context)
+      const clients1 = await db1.client.findMany()
+
+      expect(clients1).toHaveLength(1)
+      expect(clients1[0].id).toBe(client1.id)
+      expect(clients1[0].firstName).toBe('John')
+
+      // Merchant 2 should only see client 2
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      const clients2 = await db2.client.findMany()
+
+      expect(clients2).toHaveLength(1)
+      expect(clients2[0].id).toBe(client2.id)
+      expect(clients2[0].firstName).toBe('Jane')
+    })
+
+    it('should prevent access to other merchants clients by ID', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 tries to access Merchant 2's client
+      const db1 = await secureClient.withSession(merchant1Context)
+      const client = await db1.client.findUnique({
+        where: { id: client2.id }
+      })
+
+      expect(client).toBeNull()
+
+      // Merchant 2 tries to access Merchant 1's client
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      const client2Data = await db2.client.findUnique({
+        where: { id: client1.id }
+      })
+
+      expect(client2Data).toBeNull()
+    })
+  })
+
+  describe('Credit Isolation', () => {
+    let credit1: { id: string }
+    let credit2: { id: string }
+
+    beforeEach(async () => {
+      // Create test credits
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Credit for merchant 1
+      const db1 = await secureClient.withSession(merchant1Context)
+      credit1 = await db1.credit.create({
+        data: {
+          label: 'Test Credit 1',
+          totalAmount: 1000,
+          remainingAmount: 1000,
+          status: 'OPEN',
+          merchantId: merchant1.id,
+          clientId: client1.id
+        }
+      })
+
+      // Credit for merchant 2
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      credit2 = await db2.credit.create({
+        data: {
+          label: 'Test Credit 2',
+          totalAmount: 2000,
+          remainingAmount: 2000,
+          status: 'OPEN',
+          merchantId: merchant2.id,
+          clientId: client2.id
+        }
+      })
+    })
+
+    it('should isolate credits by merchant', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 should only see their credit
+      const db1 = await secureClient.withSession(merchant1Context)
+      const credits1 = await db1.credit.findMany()
+
+      expect(credits1).toHaveLength(1)
+      expect(credits1[0].id).toBe(credit1.id)
+      expect(credits1[0].totalAmount.toString()).toBe('1000')
+
+      // Merchant 2 should only see their credit
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      const credits2 = await db2.credit.findMany()
+
+      expect(credits2).toHaveLength(1)
+      expect(credits2[0].id).toBe(credit2.id)
+      expect(credits2[0].totalAmount.toString()).toBe('2000')
+    })
+
+    it('should prevent cross-tenant credit access', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 tries to access Merchant 2's credit
+      const db1 = await secureClient.withSession(merchant1Context)
+      const credit = await db1.credit.findUnique({
+        where: { id: credit2.id }
+      })
+
+      expect(credit).toBeNull()
+    })
+  })
+
+  describe('Payment Isolation', () => {
+    let payment1: { id: string }
+    let payment2: { id: string }
+
+    beforeEach(async () => {
+      // Create test payments
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Payment for merchant 1
+      const db1 = await secureClient.withSession(merchant1Context)
+      payment1 = await db1.payment.create({
+        data: {
+          amount: 500,
+          method: 'CASH',
+          merchantId: merchant1.id,
+          clientId: client1.id
+        }
+      })
+
+      // Payment for merchant 2
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      payment2 = await db2.payment.create({
+        data: {
+          amount: 1000,
+          method: 'BANK_TRANSFER',
+          merchantId: merchant2.id,
+          clientId: client2.id
+        }
+      })
+    })
+
+    it('should isolate payments by merchant', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 should only see their payment
+      const db1 = await secureClient.withSession(merchant1Context)
+      const payments1 = await db1.payment.findMany()
+
+      expect(payments1).toHaveLength(1)
+      expect(payments1[0].id).toBe(payment1.id)
+      expect(payments1[0].amount.toString()).toBe('500')
+
+      // Merchant 2 should only see their payment
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      const payments2 = await db2.payment.findMany()
+
+      expect(payments2).toHaveLength(1)
+      expect(payments2[0].id).toBe(payment2.id)
+      expect(payments2[0].amount.toString()).toBe('1000')
+    })
+
+    it('should prevent cross-tenant payment access', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Merchant 1 tries to access Merchant 2's payment
+      const db1 = await secureClient.withSession(merchant1Context)
+      const payment = await db1.payment.findUnique({
+        where: { id: payment2.id }
+      })
+
+      expect(payment).toBeNull()
+    })
+  })
+
+  describe('Transaction Safety', () => {
+    it('should maintain RLS in transactions', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+      const db = await secureClient.withSession(merchant1Context)
+
+      const result = await secureClient.$transaction(async (tx) => {
+        // Create a client within transaction
+        const client = await tx.client.create({
+          data: {
+            firstName: 'Transaction',
+            lastName: 'Test',
+            email: 'transaction@test.com',
+            merchantId: merchant1.id
+          }
+        })
+
+        // Should only see clients for this merchant
+        const allClients = await tx.client.findMany()
+        return { client, allClients }
+      })
+
+      // Should have created the client
+      expect(result.client.firstName).toBe('Transaction')
+
+      // Should only see clients for merchant1 (original + new one)
+      expect(result.allClients).toHaveLength(2)
+      expect(result.allClients.every(c => c.merchantId === merchant1.id)).toBe(true)
+    })
+  })
+
+  describe('Error Handling', () => {
+    it('should fail fast when merchantId is missing', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      await expect(async () => {
+        await secureClient.withSession({
+          merchantId: '',
+          userId: 'test'
+        })
+      }).rejects.toThrow(MissingMerchantIdError)
+    })
+
+    it('should prevent operations without active session', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      await expect(async () => {
+        await secureClient.$transaction(async (tx) => {
+          await tx.client.findMany()
+        })
+      }).rejects.toThrow(MissingMerchantIdError)
+    })
+  })
+
+  describe('Complex Queries with Joins', () => {
+    it('should properly filter joined data', async () => {
+      const secureClient = new SecurePrismaClient(prisma)
+
+      // Create credit for merchant 1
+      const db1 = await secureClient.withSession(merchant1Context)
+      const credit = await db1.credit.create({
+        data: {
+          label: 'Join Test Credit',
+          totalAmount: 1000,
+          remainingAmount: 1000,
+          status: 'OPEN',
+          merchantId: merchant1.id,
+          clientId: client1.id
+        }
+      })
+
+      // Query with joins should only return data for current merchant
+      const creditsWithClient = await db1.credit.findMany({
+        include: {
+          client: true,
+          merchant: true
+        }
+      })
+
+      expect(creditsWithClient).toHaveLength(1)
+      expect(creditsWithClient[0].client.merchantId).toBe(merchant1.id)
+      expect(creditsWithClient[0].merchant.id).toBe(merchant1.id)
+
+      // Merchant 2 should not see any of this data
+      await secureClient.clearSession()
+      const db2 = await secureClient.withSession(merchant2Context)
+      const merchant2Credits = await db2.credit.findMany({
+        include: {
+          client: true,
+          merchant: true
+        }
+      })
+
+      expect(merchant2Credits).toHaveLength(0)
+    })
+  })
+})
+
+describe('Database Utilities Integration', () => {
+  it('should work with the high-level database utilities', async () => {
+    // This test would normally use the auth-context utilities
+    // For now, we'll test the core RLS functionality
+    const secureClient = new SecurePrismaClient(prisma)
+    const db = await secureClient.withSession(merchant1Context)
+
+    const clients = await db.client.findMany()
+    expect(clients.every(client => client.merchantId === merchant1.id)).toBe(true)
+  })
+})
