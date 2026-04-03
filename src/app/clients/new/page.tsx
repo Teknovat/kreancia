@@ -3,22 +3,13 @@
  * Simple, efficient client creation form
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  Save,
-  User,
-  Mail,
-  Phone,
-  Building2,
-  MapPin,
-  AlertTriangle
-} from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Save, User, Mail, Phone, Building2, MapPin, AlertTriangle } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 
 interface FormData {
   firstName: string;
@@ -38,30 +29,28 @@ export default function NewClientPage() {
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    businessName: '',
-    taxId: '',
-    creditLimit: '',
-    paymentTermDays: '30'
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    businessName: "",
+    taxId: "",
+    creditLimit: "",
+    paymentTermDays: "30",
   });
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'Prénom requis';
+      newErrors.firstName = "Prénom requis";
     }
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Nom requis';
+      newErrors.lastName = "Nom requis";
     }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email requis';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email invalide';
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email invalide";
     }
 
     setErrors(newErrors);
@@ -78,34 +67,34 @@ export default function NewClientPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/clients', {
-        method: 'POST',
+      const response = await fetch("/api/clients", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
           creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : null,
-          paymentTermDays: parseInt(formData.paymentTermDays)
+          paymentTermDays: parseInt(formData.paymentTermDays),
         }),
       });
 
       if (response.ok) {
-        router.push('/clients');
+        router.push("/clients");
       } else {
-        console.error('Error creating client');
+        console.error("Error creating client");
       }
     } catch (error) {
-      console.error('Error creating client:', error);
+      console.error("Error creating client:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -117,18 +106,14 @@ export default function NewClientPage() {
           <div className="max-w-4xl mx-auto px-6 py-8">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => router.push('/clients')}
+                onClick={() => router.push("/clients")}
                 className="p-2 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
               >
                 <ArrowLeft size={20} />
               </button>
               <div>
-                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                  Nouveau Client
-                </h1>
-                <p className="text-lg text-gray-600 mt-2">
-                  Créer un nouveau client
-                </p>
+                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">Nouveau Client</h1>
+                <p className="text-lg text-gray-600 mt-2">Créer un nouveau client</p>
               </div>
             </div>
           </div>
@@ -138,9 +123,7 @@ export default function NewClientPage() {
         <div className="max-w-4xl mx-auto px-6 py-8">
           <form onSubmit={handleSubmit} className="bg-white border-2 border-gray-900">
             <div className="border-b-2 border-gray-900 p-6">
-              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-                Informations Client
-              </h2>
+              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Informations Client</h2>
             </div>
 
             <div className="p-6 space-y-6">
@@ -154,9 +137,9 @@ export default function NewClientPage() {
                   <input
                     type="text"
                     value={formData.firstName}
-                    onChange={(e) => handleChange('firstName', e.target.value)}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-200'
+                      errors.firstName ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     disabled={isSubmitting}
                   />
@@ -176,9 +159,9 @@ export default function NewClientPage() {
                   <input
                     type="text"
                     value={formData.lastName}
-                    onChange={(e) => handleChange('lastName', e.target.value)}
+                    onChange={(e) => handleChange("lastName", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-200'
+                      errors.lastName ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     disabled={isSubmitting}
                   />
@@ -195,14 +178,14 @@ export default function NewClientPage() {
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
                     <Mail size={16} className="inline mr-2" />
-                    Email *
+                    Email
                   </label>
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
+                    onChange={(e) => handleChange("email", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.email ? 'border-red-500' : 'border-gray-200'
+                      errors.email ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     disabled={isSubmitting}
                   />
@@ -222,7 +205,7 @@ export default function NewClientPage() {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
+                    onChange={(e) => handleChange("phone", e.target.value)}
                     className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                     disabled={isSubmitting}
                   />
@@ -237,7 +220,7 @@ export default function NewClientPage() {
                 <input
                   type="text"
                   value={formData.address}
-                  onChange={(e) => handleChange('address', e.target.value)}
+                  onChange={(e) => handleChange("address", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                   disabled={isSubmitting}
                 />
@@ -258,7 +241,7 @@ export default function NewClientPage() {
                     <input
                       type="text"
                       value={formData.businessName}
-                      onChange={(e) => handleChange('businessName', e.target.value)}
+                      onChange={(e) => handleChange("businessName", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                     />
@@ -271,7 +254,7 @@ export default function NewClientPage() {
                     <input
                       type="text"
                       value={formData.taxId}
-                      onChange={(e) => handleChange('taxId', e.target.value)}
+                      onChange={(e) => handleChange("taxId", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                     />
@@ -287,7 +270,7 @@ export default function NewClientPage() {
                       type="number"
                       step="0.01"
                       value={formData.creditLimit}
-                      onChange={(e) => handleChange('creditLimit', e.target.value)}
+                      onChange={(e) => handleChange("creditLimit", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                       placeholder="0.00"
@@ -301,7 +284,7 @@ export default function NewClientPage() {
                     <input
                       type="number"
                       value={formData.paymentTermDays}
-                      onChange={(e) => handleChange('paymentTermDays', e.target.value)}
+                      onChange={(e) => handleChange("paymentTermDays", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                       min="1"
@@ -316,7 +299,7 @@ export default function NewClientPage() {
               <div className="flex gap-4 justify-end">
                 <button
                   type="button"
-                  onClick={() => router.push('/clients')}
+                  onClick={() => router.push("/clients")}
                   className="px-6 py-3 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-all font-medium"
                   disabled={isSubmitting}
                 >
@@ -328,7 +311,7 @@ export default function NewClientPage() {
                   disabled={isSubmitting}
                 >
                   <Save size={20} />
-                  {isSubmitting ? 'Création...' : 'Créer Client'}
+                  {isSubmitting ? "Création..." : "Créer Client"}
                 </button>
               </div>
             </div>
