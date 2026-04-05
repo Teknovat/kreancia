@@ -23,12 +23,10 @@ import type {
  * Credit Service Class
  */
 export class CreditService {
-  private prisma: PrismaClient
   private merchantId: string
 
   constructor(merchantId: string) {
     this.merchantId = merchantId
-    this.prisma = new PrismaClient()
   }
 
   /**
@@ -79,17 +77,17 @@ export class CreditService {
    * Transform database credit to CreditWithDetails
    */
   private transformCreditWithDetails(creditData: any): CreditWithDetails {
-    const totalAmountNumber = Number(creditData.totalAmount)
-    const remainingAmountNumber = Number(creditData.remainingAmount)
-    const paidAmount = totalAmountNumber - remainingAmountNumber
+    const totalAmount = Number(creditData.totalAmount)
+    const remainingAmount = Number(creditData.remainingAmount)
+    const paidAmount = totalAmount - remainingAmount
     const daysOverdue = this.calculateDaysOverdue(creditData.dueDate)
     const isOverdue = daysOverdue !== null && daysOverdue > 0
 
     return {
       id: creditData.id,
       label: creditData.label,
-      totalAmount: creditData.totalAmount,
-      remainingAmount: creditData.remainingAmount,
+      totalAmount: totalAmount,           // Toujours en Number
+      remainingAmount: remainingAmount,   // Toujours en Number
       dueDate: creditData.dueDate,
       status: creditData.status,
       clientId: creditData.clientId,
@@ -104,18 +102,16 @@ export class CreditService {
       },
       allocations: creditData.paymentAllocations?.map((allocation: any) => ({
         id: allocation.id,
-        amount: allocation.amount,
+        amount: Number(allocation.amount),
         paymentId: allocation.paymentId,
         payment: {
           id: allocation.payment.id,
-          amount: allocation.payment.amount,
+          amount: Number(allocation.payment.amount),
           paymentDate: allocation.payment.paymentDate,
           method: allocation.payment.method
         }
       })) || [],
       paidAmount,
-      remainingAmountNumber,
-      totalAmountNumber,
       daysOverdue,
       isOverdue
     }
@@ -273,7 +269,7 @@ export class CreditService {
             lastName: true
           }
         },
-        allocations: {
+        paymentAllocations: {
           include: {
             payment: {
               select: {
@@ -539,7 +535,7 @@ export class CreditService {
             lastName: true
           }
         },
-        allocations: {
+        paymentAllocations: {
           include: {
             payment: {
               select: {

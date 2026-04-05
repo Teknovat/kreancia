@@ -49,8 +49,14 @@ export default function NewClientPage() {
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Nom requis";
     }
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email.trim())) {
       newErrors.email = "Email invalide";
+    }
+    if (formData.creditLimit && (isNaN(parseFloat(formData.creditLimit)) || parseFloat(formData.creditLimit) <= 0)) {
+      newErrors.creditLimit = "La limite de crédit doit être un nombre positif";
+    }
+    if (formData.paymentTermDays && (isNaN(parseInt(formData.paymentTermDays)) || parseInt(formData.paymentTermDays) <= 0)) {
+      newErrors.paymentTermDays = "Le délai de paiement doit être un nombre positif";
     }
 
     setErrors(newErrors);
@@ -67,22 +73,44 @@ export default function NewClientPage() {
     setIsSubmitting(true);
 
     try {
+      // Transform form data to handle empty strings properly
+      const requestData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        address: formData.address.trim() || undefined,
+        businessName: formData.businessName.trim() || undefined,
+        taxId: formData.taxId.trim() || undefined,
+        creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : null,
+        paymentTermDays: parseInt(formData.paymentTermDays),
+      };
+
       const response = await fetch("/api/clients", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : null,
-          paymentTermDays: parseInt(formData.paymentTermDays),
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {
         router.push("/clients");
       } else {
-        console.error("Error creating client");
+        const errorData = await response.json();
+        console.error("Error creating client:", errorData);
+
+        // Handle validation errors from the API
+        if (errorData.details && Array.isArray(errorData.details)) {
+          const newErrors: Partial<FormData> = {};
+          errorData.details.forEach((error: any) => {
+            if (error.path && error.path.length > 0) {
+              const field = error.path[0];
+              newErrors[field as keyof FormData] = error.message;
+            }
+          });
+          setErrors(newErrors);
+        }
       }
     } catch (error) {
       console.error("Error creating client:", error);
@@ -236,7 +264,7 @@ export default function NewClientPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
-                      Nom de l'entreprise
+                      Nom de l&apos;entreprise
                     </label>
                     <input
                       type="text"
@@ -271,10 +299,18 @@ export default function NewClientPage() {
                       step="0.01"
                       value={formData.creditLimit}
                       onChange={(e) => handleChange("creditLimit", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
+                      className={`w-full px-4 py-3 border-2 ${
+                        errors.creditLimit ? "border-red-500" : "border-gray-200"
+                      } focus:border-gray-900 focus:outline-none`}
                       disabled={isSubmitting}
                       placeholder="0.00"
                     />
+                    {errors.creditLimit && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                        <AlertTriangle size={14} />
+                        {errors.creditLimit}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -285,10 +321,18 @@ export default function NewClientPage() {
                       type="number"
                       value={formData.paymentTermDays}
                       onChange={(e) => handleChange("paymentTermDays", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
+                      className={`w-full px-4 py-3 border-2 ${
+                        errors.paymentTermDays ? "border-red-500" : "border-gray-200"
+                      } focus:border-gray-900 focus:outline-none`}
                       disabled={isSubmitting}
                       min="1"
                     />
+                    {errors.paymentTermDays && (
+                      <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                        <AlertTriangle size={14} />
+                        {errors.paymentTermDays}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

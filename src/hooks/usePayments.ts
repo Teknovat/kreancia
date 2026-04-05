@@ -71,19 +71,22 @@ export function usePayments(initialFilters?: Partial<PaymentFilters>): UsePaymen
       setLoading(true);
       setError(null);
 
-      // Build query parameters
+      // Build query parameters matching API schema
       const params = new URLSearchParams();
       if (filters.search) params.append("search", filters.search);
+      if (filters.method !== "ALL") params.append("method", filters.method);
       if (filters.clientId) params.append("clientId", filters.clientId);
-      if (filters.method) params.append("method", filters.method);
       if (filters.dateFrom) params.append("dateFrom", filters.dateFrom.toISOString());
       if (filters.dateTo) params.append("dateTo", filters.dateTo.toISOString());
-      if (filters.isFullyAllocated !== undefined)
-        params.append("isFullyAllocated", filters.isFullyAllocated.toString());
+      if (filters.minAmount) params.append("minAmount", filters.minAmount.toString());
+      if (filters.maxAmount) params.append("maxAmount", filters.maxAmount.toString());
+
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder);
       params.append("page", filters.page.toString());
       params.append("limit", filters.limit.toString());
+
+      console.log("Fetching payments with params:", params.toString());
 
       const response = await fetch(`/api/payments?${params}`);
 
@@ -98,47 +101,57 @@ export function usePayments(initialFilters?: Partial<PaymentFilters>): UsePaymen
         throw new Error(data.error || "Failed to fetch payments");
       }
 
-      // Transform payments data to convert date strings to Date objects
-      const paymentsWithDates = (data.data || []).map((payment: any) => ({
+      console.log("Raw payments API response:", data);
+
+      // Transform payments data to convert decimal and date strings
+      const paymentsWithTypes = (data.data || []).map((payment: any) => ({
         ...payment,
         createdAt: new Date(payment.createdAt),
         updatedAt: new Date(payment.updatedAt),
         paymentDate: new Date(payment.paymentDate),
-        client: payment.client
-          ? {
-              ...payment.client,
-              createdAt: new Date(payment.client.createdAt),
-              updatedAt: new Date(payment.client.updatedAt),
-            }
-          : null,
-        paymentAllocations:
-          payment.paymentAllocations?.map((allocation: any) => ({
-            ...allocation,
-            createdAt: new Date(allocation.createdAt),
-            credit: allocation.credit
-              ? {
-                  ...allocation.credit,
-                  createdAt: new Date(allocation.credit.createdAt),
-                  updatedAt: new Date(allocation.credit.updatedAt),
-                  dueDate: new Date(allocation.credit.dueDate),
-                }
-              : null,
-          })) || [],
+        amountNumber: parseFloat(payment.amount || "0"),
+        totalAllocated: payment.allocations?.reduce((sum: number, alloc: any) =>
+          sum + parseFloat(alloc.amount || "0"), 0) || 0,
+        unallocatedAmount: parseFloat(payment.amount || "0") - (payment.allocations?.reduce((sum: number, alloc: any) =>
+          sum + parseFloat(alloc.amount || "0"), 0) || 0),
+        isFullyAllocated: payment.allocations?.reduce((sum: number, alloc: any) =>
+          sum + parseFloat(alloc.amount || "0"), 0) >= parseFloat(payment.amount || "0"),
+        allocations: (payment.allocations || []).map((allocation: any) => ({
+          ...allocation,
+          amountNumber: parseFloat(allocation.amount || "0"),
+        })),
+        paymentAllocations: (payment.paymentAllocations || []).map((allocation: any) => ({
+          ...allocation,
+          createdAt: new Date(allocation.createdAt),
+          credit: allocation.credit ? {
+            ...allocation.credit,
+            createdAt: new Date(allocation.credit.createdAt),
+            updatedAt: new Date(allocation.credit.updatedAt),
+            dueDate: allocation.credit.dueDate ? new Date(allocation.credit.dueDate) : null,
+          } : null,
+        }))
       }));
 
-      setPayments(paymentsWithDates);
-      setTotalCount(data.pagination.total || 0);
-      setTotalPages(data.data.totalPages || 0);
-      setStats(
-        data.data.stats || {
-          totalPayments: 0,
-          totalAmount: 0,
-          amountThisMonth: 0,
-          paymentsThisMonth: 0,
-          unallocatedPayments: 0,
-          averagePaymentAmount: 0,
-        },
-      );
+      console.log("Processed payments:", paymentsWithTypes);
+
+      setPayments(paymentsWithTypes);
+      setTotalCount(data.pagination?.total || 0);
+      setTotalPages(data.pagination?.totalPages || 0);
+
+      // Calculate stats from the response
+      const totalAmount = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.amountNumber, 0);
+      const totalAllocated = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.totalAllocated, 0);
+
+      const calculatedStats = {
+        totalPayments: paymentsWithTypes.length,
+        totalAmount,
+        amountThisMonth: 0, // Would need backend calculation
+        paymentsThisMonth: 0, // Would need backend calculation
+        unallocatedPayments: paymentsWithTypes.filter((p: any) => !p.isFullyAllocated).length,
+        averagePaymentAmount: paymentsWithTypes.length > 0 ? totalAmount / paymentsWithTypes.length : 0,
+      };
+
+      setStats(calculatedStats);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);

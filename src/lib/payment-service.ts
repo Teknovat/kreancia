@@ -31,13 +31,11 @@ import type { CreditWithDetails } from '@/types/credit'
  * Payment Service Class
  */
 export class PaymentService {
-  private prisma: PrismaClient
   private merchantId: string
   private creditService: CreditService
 
   constructor(merchantId: string) {
     this.merchantId = merchantId
-    this.prisma = new PrismaClient()
     this.creditService = new CreditService(merchantId)
   }
 
@@ -67,7 +65,7 @@ export class PaymentService {
 
     return {
       id: paymentData.id,
-      amount: paymentData.amount,
+      amount: Number(paymentData.amount),
       note: paymentData.note,
       method: paymentData.method,
       reference: paymentData.reference,
@@ -84,12 +82,13 @@ export class PaymentService {
       },
       allocations: paymentData.paymentAllocations?.map((allocation: any) => ({
         id: allocation.id,
-        amount: allocation.amount,
+        amount: Number(allocation.amount),
         amountNumber: Number(allocation.amount),
+        allocatedAmount: Number(allocation.allocatedAmount || allocation.amount),
         credit: {
           id: allocation.credit.id,
           label: allocation.credit.label,
-          totalAmount: allocation.credit.totalAmount,
+          totalAmount: Number(allocation.credit.totalAmount),
           status: allocation.credit.status
         }
       })) || [],
@@ -107,10 +106,9 @@ export class PaymentService {
   async allocatePaymentFIFO(
     paymentId: string,
     paymentAmount: Decimal,
-    clientId: string
+    clientId: string,
+    tx?: any // Optional transaction client
   ): Promise<FIFOAllocationResult> {
-    const client = await this.getSecureClient()
-
     // Get all open credits for the client, ordered by creation date (FIFO)
     const openCredits = await this.creditService.getOpenCreditsForClient(clientId)
 
@@ -127,8 +125,8 @@ export class PaymentService {
     const allocations: PaymentAllocation[] = []
     const creditsUpdated: string[] = []
 
-    // Execute all operations in a transaction for atomicity
-    await withSecureTransaction(async (tx) => {
+    // Function to execute allocation logic
+    const executeAllocation = async (client: any) => {
       for (const credit of openCredits) {
         if (remainingPaymentAmount <= 0.01) break // Stop if payment fully allocated
 
@@ -142,7 +140,7 @@ export class PaymentService {
         if (allocationAmount <= 0) continue
 
         // Create payment allocation record
-        const allocation = await tx.paymentAllocation.create({
+        const allocation = await client.paymentAllocation.create({
           data: {
             amount: new Decimal(allocationAmount),
             allocatedAmount: new Decimal(allocationAmount),
@@ -160,7 +158,7 @@ export class PaymentService {
         const newStatus = newRemainingAmount <= 0.01 ? 'PAID' :
                          (credit.dueDate && new Date() > credit.dueDate ? 'OVERDUE' : 'OPEN')
 
-        await tx.credit.update({
+        await client.credit.update({
           where: { id: credit.id },
           data: {
             remainingAmount: new Decimal(Math.max(0, newRemainingAmount)),
@@ -171,7 +169,14 @@ export class PaymentService {
         creditsUpdated.push(credit.id)
         remainingPaymentAmount -= allocationAmount
       }
-    })
+    }
+
+    // If transaction client provided, use it; otherwise create new transaction
+    if (tx) {
+      await executeAllocation(tx)
+    } else {
+      await withSecureTransaction(executeAllocation)
+    }
 
     return {
       allocations,
@@ -248,10 +253,9 @@ export class PaymentService {
     paymentId: string,
     paymentAmount: Decimal,
     clientId: string,
-    manualAllocations: ManualAllocationItem[]
+    manualAllocations: ManualAllocationItem[],
+    tx?: any // Optional transaction client
   ): Promise<FIFOAllocationResult> {
-    const client = await this.getSecureClient()
-
     // Validate allocations first
     const validation = await this.validateManualAllocation(
       clientId,
@@ -267,11 +271,11 @@ export class PaymentService {
     const creditsUpdated: string[] = []
     let totalAllocated = 0
 
-    // Execute all operations in a transaction
-    await withSecureTransaction(async (tx) => {
+    // Function to execute allocation logic
+    const executeAllocation = async (client: any) => {
       for (const manualAllocation of manualAllocations) {
         // Get current credit state
-        const credit = await tx.credit.findUnique({
+        const credit = await client.credit.findUnique({
           where: { id: manualAllocation.creditId }
         })
 
@@ -282,7 +286,7 @@ export class PaymentService {
         const allocationAmount = manualAllocation.amount
 
         // Create payment allocation record
-        const allocation = await tx.paymentAllocation.create({
+        const allocation = await client.paymentAllocation.create({
           data: {
             amount: new Decimal(allocationAmount),
             allocatedAmount: new Decimal(allocationAmount),
@@ -301,7 +305,7 @@ export class PaymentService {
         const newStatus = newRemainingAmount <= 0.01 ? 'PAID' :
                          (credit.dueDate && new Date() > credit.dueDate ? 'OVERDUE' : 'OPEN')
 
-        await tx.credit.update({
+        await client.credit.update({
           where: { id: credit.id },
           data: {
             remainingAmount: new Decimal(Math.max(0, newRemainingAmount)),
@@ -312,7 +316,14 @@ export class PaymentService {
         creditsUpdated.push(credit.id)
         totalAllocated += allocationAmount
       }
-    })
+    }
+
+    // If transaction client provided, use it; otherwise create new transaction
+    if (tx) {
+      await executeAllocation(tx)
+    } else {
+      await withSecureTransaction(executeAllocation)
+    }
 
     return {
       allocations,
@@ -352,14 +363,16 @@ export class PaymentService {
           payment.id,
           payment.amount,
           data.clientId,
-          data.manualAllocations
+          data.manualAllocations,
+          tx // Pass transaction client
         )
       } else {
         // Default to FIFO allocation
         allocationResult = await this.allocatePaymentFIFO(
           payment.id,
           payment.amount,
-          data.clientId
+          data.clientId,
+          tx // Pass transaction client
         )
       }
     })
@@ -385,7 +398,7 @@ export class PaymentService {
       const payment = await tx.payment.findUnique({
         where: { id: paymentId },
         include: {
-          allocations: {
+          paymentAllocations: {
             include: {
               credit: true
             }
@@ -401,7 +414,7 @@ export class PaymentService {
       const creditsRestored: string[] = []
 
       // Reverse each allocation
-      for (const allocation of payment.allocations) {
+      for (const allocation of payment.paymentAllocations) {
         const allocationAmount = Number(allocation.amount)
         const credit = allocation.credit
 
@@ -610,7 +623,7 @@ export class PaymentService {
             lastName: true
           }
         },
-        allocations: {
+        paymentAllocations: {
           include: {
             credit: {
               select: {

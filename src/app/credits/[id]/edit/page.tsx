@@ -3,22 +3,13 @@
  * Simple, efficient credit editing form
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import {
-  ArrowLeft,
-  Save,
-  User,
-  DollarSign,
-  Calendar,
-  FileText,
-  AlertTriangle,
-  Eye
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, Save, User, DollarSign, Calendar, FileText, AlertTriangle, Eye } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 
 interface FormData {
   label: string;
@@ -49,10 +40,10 @@ export default function EditCreditPage() {
   const [credit, setCredit] = useState<Credit | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    label: '',
-    totalAmount: '',
-    description: '',
-    dueDate: ''
+    label: "",
+    totalAmount: "",
+    description: "",
+    dueDate: "",
   });
 
   // Load credit data
@@ -63,20 +54,20 @@ export default function EditCreditPage() {
       try {
         const response = await fetch(`/api/credits/${params.id}`);
         if (response.ok) {
-          const creditData = await response.json();
-          setCredit(creditData);
+          const { data } = await response.json();
+          setCredit(data);
           setFormData({
-            label: creditData.label || '',
-            totalAmount: creditData.totalAmount?.toString() || '',
-            description: creditData.description || '',
-            dueDate: creditData.dueDate ? new Date(creditData.dueDate).toISOString().split('T')[0] : ''
+            label: data.label || "",
+            totalAmount: data.totalAmount?.toString() || "",
+            description: data.description || "",
+            dueDate: data.dueDate ? new Date(data.dueDate).toISOString().split("T")[0] : "",
           });
         } else {
-          router.push('/credits');
+          router.push("/credits");
         }
       } catch (error) {
-        console.error('Error loading credit:', error);
-        router.push('/credits');
+        console.error("Error loading credit:", error);
+        router.push("/credits");
       } finally {
         setIsLoading(false);
       }
@@ -89,12 +80,12 @@ export default function EditCreditPage() {
     const newErrors: Partial<FormData> = {};
 
     if (!formData.label.trim()) {
-      newErrors.label = 'Libellé requis';
+      newErrors.label = "Libellé requis";
     }
     if (!formData.totalAmount) {
-      newErrors.totalAmount = 'Montant requis';
+      newErrors.totalAmount = "Montant requis";
     } else if (parseFloat(formData.totalAmount) <= 0) {
-      newErrors.totalAmount = 'Montant doit être positif';
+      newErrors.totalAmount = "Montant doit être positif";
     }
 
     setErrors(newErrors);
@@ -112,33 +103,33 @@ export default function EditCreditPage() {
 
     try {
       const response = await fetch(`/api/credits/${params?.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
           totalAmount: parseFloat(formData.totalAmount),
-          dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null
+          dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
         }),
       });
 
       if (response.ok) {
         router.push(`/credits/${params?.id}`);
       } else {
-        console.error('Error updating credit');
+        console.error("Error updating credit");
       }
     } catch (error) {
-      console.error('Error updating credit:', error);
+      console.error("Error updating credit:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -163,7 +154,7 @@ export default function EditCreditPage() {
             <AlertTriangle size={48} className="text-red-500 mx-auto mb-4" />
             <h1 className="text-xl font-bold text-gray-900 mb-2">Crédit non trouvé</h1>
             <button
-              onClick={() => router.push('/credits')}
+              onClick={() => router.push("/credits")}
               className="px-4 py-2 bg-gray-900 text-white border-2 border-gray-900 hover:bg-white hover:text-gray-900 transition-all"
             >
               Retour aux crédits
@@ -188,11 +179,9 @@ export default function EditCreditPage() {
                 <ArrowLeft size={20} />
               </button>
               <div className="flex-1">
-                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                  Modifier Crédit
-                </h1>
+                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">Modifier Crédit</h1>
                 <p className="text-lg text-gray-600 mt-2">
-                  {credit.label} - {credit.client.firstName} {credit.client.lastName}
+                  {credit.label} - {credit.client?.firstName} {credit.client?.lastName}
                 </p>
               </div>
               <button
@@ -209,9 +198,7 @@ export default function EditCreditPage() {
         <div className="max-w-4xl mx-auto px-6 py-8">
           <form onSubmit={handleSubmit} className="bg-white border-2 border-gray-900">
             <div className="border-b-2 border-gray-900 p-6">
-              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-                Informations Crédit
-              </h2>
+              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Informations Crédit</h2>
             </div>
 
             <div className="p-6 space-y-6">
@@ -222,11 +209,9 @@ export default function EditCreditPage() {
                   Client
                 </label>
                 <p className="text-lg font-medium text-gray-900">
-                  {credit.client.firstName} {credit.client.lastName}
+                  {credit.client?.firstName} {credit.client?.lastName}
                 </p>
-                <p className="text-sm text-gray-600">
-                  Le client ne peut pas être modifié après la création du crédit.
-                </p>
+                <p className="text-sm text-gray-600">Le client ne peut pas être modifié après la création du crédit.</p>
               </div>
 
               {/* Credit Information */}
@@ -239,9 +224,9 @@ export default function EditCreditPage() {
                   <input
                     type="text"
                     value={formData.label}
-                    onChange={(e) => handleChange('label', e.target.value)}
+                    onChange={(e) => handleChange("label", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.label ? 'border-red-500' : 'border-gray-200'
+                      errors.label ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     placeholder="ex: Facture #001"
                     disabled={isSubmitting}
@@ -264,9 +249,9 @@ export default function EditCreditPage() {
                     step="0.01"
                     min="0.01"
                     value={formData.totalAmount}
-                    onChange={(e) => handleChange('totalAmount', e.target.value)}
+                    onChange={(e) => handleChange("totalAmount", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.totalAmount ? 'border-red-500' : 'border-gray-200'
+                      errors.totalAmount ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     placeholder="0.00"
                     disabled={isSubmitting}
@@ -288,7 +273,7 @@ export default function EditCreditPage() {
                 <input
                   type="date"
                   value={formData.dueDate}
-                  onChange={(e) => handleChange('dueDate', e.target.value)}
+                  onChange={(e) => handleChange("dueDate", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                   disabled={isSubmitting}
                 />
@@ -300,7 +285,7 @@ export default function EditCreditPage() {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
+                  onChange={(e) => handleChange("description", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                   rows={4}
                   placeholder="Description du crédit..."
@@ -340,7 +325,7 @@ export default function EditCreditPage() {
                   disabled={isSubmitting}
                 >
                   <Save size={20} />
-                  {isSubmitting ? 'Mise à jour...' : 'Mettre à jour'}
+                  {isSubmitting ? "Mise à jour..." : "Mettre à jour"}
                 </button>
               </div>
             </div>

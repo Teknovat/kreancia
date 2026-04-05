@@ -3,23 +3,13 @@
  * Simple, efficient credit detail view
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import {
-  ArrowLeft,
-  User,
-  DollarSign,
-  Calendar,
-  FileText,
-  Edit,
-  AlertTriangle,
-  Clock,
-  CheckCircle
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, User, DollarSign, Calendar, FileText, Edit, AlertTriangle, Clock, CheckCircle } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 
 interface Credit {
   id: string;
@@ -27,7 +17,7 @@ interface Credit {
   totalAmount: number;
   remainingAmount: number;
   description?: string;
-  status: 'OPEN' | 'PAID' | 'OVERDUE';
+  status: "OPEN" | "PAID" | "OVERDUE";
   createdAt: string;
   dueDate?: string;
   client: {
@@ -36,6 +26,18 @@ interface Credit {
     lastName: string;
     businessName?: string;
   };
+  allocations?: {
+    id: string;
+    amount: number;
+    paymentId: string;
+    payment: {
+      id: string;
+      amount: number;
+      paymentDate: string;
+      method: string;
+      reference?: string;
+    };
+  }[];
 }
 
 export default function CreditDetailPage() {
@@ -50,13 +52,13 @@ export default function CreditDetailPage() {
       try {
         const response = await fetch(`/api/credits/${params?.id}`);
         if (response.ok) {
-          const data = await response.json();
+          const { data } = await response.json();
           setCredit(data);
         } else {
-          setError('Crédit non trouvé');
+          setError("Crédit non trouvé");
         }
       } catch (err) {
-        setError('Erreur lors du chargement');
+        setError("Erreur lors du chargement");
       } finally {
         setIsLoading(false);
       }
@@ -69,14 +71,14 @@ export default function CreditDetailPage() {
 
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'OPEN':
-        return { label: 'En cours', color: 'text-blue-600 bg-blue-50 border-blue-200' };
-      case 'PAID':
-        return { label: 'Payé', color: 'text-green-600 bg-green-50 border-green-200' };
-      case 'OVERDUE':
-        return { label: 'En retard', color: 'text-red-600 bg-red-50 border-red-200' };
+      case "OPEN":
+        return { label: "En cours", color: "text-blue-600 bg-blue-50 border-blue-200" };
+      case "PAID":
+        return { label: "Payé", color: "text-green-600 bg-green-50 border-green-200" };
+      case "OVERDUE":
+        return { label: "En retard", color: "text-red-600 bg-red-50 border-red-200" };
       default:
-        return { label: status, color: 'text-gray-600 bg-gray-50 border-gray-200' };
+        return { label: status, color: "text-gray-600 bg-gray-50 border-gray-200" };
     }
   };
 
@@ -101,7 +103,7 @@ export default function CreditDetailPage() {
             <AlertTriangle size={48} className="text-red-500 mx-auto mb-4" />
             <h1 className="text-xl font-bold text-gray-900 mb-2">{error}</h1>
             <button
-              onClick={() => router.push('/credits')}
+              onClick={() => router.push("/credits")}
               className="px-4 py-2 bg-gray-900 text-white border-2 border-gray-900 hover:bg-white hover:text-gray-900 transition-all"
             >
               Retour aux crédits
@@ -122,21 +124,19 @@ export default function CreditDetailPage() {
           <div className="max-w-4xl mx-auto px-6 py-8">
             <div className="flex items-center gap-4 mb-6">
               <button
-                onClick={() => router.push('/credits')}
+                onClick={() => router.push("/credits")}
                 className="p-2 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
               >
                 <ArrowLeft size={20} />
               </button>
               <div className="flex-1">
-                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                  {credit.label}
-                </h1>
-                <p className="text-lg text-gray-600 mt-2">
-                  Crédit #{credit.id.substring(0, 8)}
-                </p>
+                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">{credit.label}</h1>
+                <p className="text-lg text-gray-600 mt-2">Crédit #{credit.id.substring(0, 8)}</p>
               </div>
               <div className="flex gap-2">
-                <span className={`px-3 py-1 border-2 font-medium text-sm uppercase tracking-wide ${statusConfig.color}`}>
+                <span
+                  className={`px-3 py-1 border-2 font-medium text-sm uppercase tracking-wide ${statusConfig.color}`}
+                >
                   {statusConfig.label}
                 </span>
                 <button
@@ -165,9 +165,7 @@ export default function CreditDetailPage() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
                   {credit.client.firstName} {credit.client.lastName}
                 </h3>
-                {credit.client.businessName && (
-                  <p className="text-gray-600 mb-4">{credit.client.businessName}</p>
-                )}
+                {credit.client.businessName && <p className="text-gray-600 mb-4">{credit.client.businessName}</p>}
                 <button
                   onClick={() => router.push(`/clients/${credit.client.id}`)}
                   className="text-sm font-medium text-gray-900 border-b-2 border-gray-900 hover:text-gray-600 transition-colors"
@@ -196,16 +194,14 @@ export default function CreditDetailPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Date de création:</span>
-                  <span className="text-gray-900">
-                    {new Date(credit.createdAt).toLocaleDateString('fr-FR')}
-                  </span>
+                  <span className="text-gray-900">{new Date(credit.createdAt).toLocaleDateString("fr-FR")}</span>
                 </div>
                 {credit.dueDate && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Date d'échéance:</span>
                     <span className="text-gray-900 flex items-center gap-1">
                       <Calendar size={16} />
-                      {new Date(credit.dueDate).toLocaleDateString('fr-FR')}
+                      {new Date(credit.dueDate).toLocaleDateString("fr-FR")}
                     </span>
                   </div>
                 )}
@@ -216,9 +212,7 @@ export default function CreditDetailPage() {
             {credit.description && (
               <div className="lg:col-span-2 bg-white border-2 border-gray-900">
                 <div className="border-b-2 border-gray-900 p-4">
-                  <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-                    Description
-                  </h2>
+                  <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Description</h2>
                 </div>
                 <div className="p-6">
                   <p className="text-gray-700">{credit.description}</p>
@@ -246,7 +240,7 @@ export default function CreditDetailPage() {
                     <div
                       className="bg-gray-900 h-full"
                       style={{
-                        width: `${((credit.totalAmount - credit.remainingAmount) / credit.totalAmount) * 100}%`
+                        width: `${((credit.totalAmount - credit.remainingAmount) / credit.totalAmount) * 100}%`,
                       }}
                     />
                   </div>
@@ -270,6 +264,69 @@ export default function CreditDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Payments History */}
+          {credit.allocations && credit.allocations.length > 0 && (
+            <div className="mt-6">
+              <div className="bg-white border-2 border-gray-900">
+                <div className="border-b-2 border-gray-900 p-4">
+                  <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                    <DollarSign size={20} />
+                    Historique des Paiements
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {credit.allocations.map((allocation) => (
+                      <div key={allocation.id} className="border-2 border-gray-200 p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-medium text-gray-900">
+                                Paiement #{allocation.payment.id.substring(0, 8)}
+                              </span>
+                              <span className="px-2 py-1 bg-gray-100 text-xs font-medium text-gray-700 rounded">
+                                {allocation.payment.method}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <div className="flex justify-between">
+                                <span>Montant total du paiement:</span>
+                                <span className="font-medium">{allocation.payment.amount.toFixed(2)} TND</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Alloué à ce crédit:</span>
+                                <span className="font-medium text-green-600">{allocation.amount.toFixed(2)} TND</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Date:</span>
+                                <span>{new Date(allocation.payment.paymentDate).toLocaleDateString('fr-FR')}</span>
+                              </div>
+                              {allocation.payment.reference && (
+                                <div className="flex justify-between">
+                                  <span>Référence:</span>
+                                  <span className="font-mono text-xs">{allocation.payment.reference}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => router.push(`/payments/${allocation.payment.id}`)}
+                            className="ml-4 text-sm font-medium text-gray-900 border-b-2 border-gray-900 hover:text-gray-600 transition-colors"
+                          >
+                            Voir →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-sm text-gray-500 text-center">
+                    {credit.allocations.length} paiement{credit.allocations.length > 1 ? 's' : ''} appliqué{credit.allocations.length > 1 ? 's' : ''} à ce crédit
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="mt-8 flex gap-4 justify-end">

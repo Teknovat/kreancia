@@ -70,18 +70,20 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
       setLoading(true);
       setError(null);
 
-      // Build query parameters
+      // Build query parameters matching API schema
       const params = new URLSearchParams();
       if (filters.search) params.append("search", filters.search);
-      if (filters.status && filters.status !== "ALL") params.append("status", filters.status);
+      if (filters.status !== "ALL") params.append("status", filters.status);
       if (filters.clientId) params.append("clientId", filters.clientId);
-      if (filters.dueAfter) params.append("dateFrom", filters.dueAfter.toISOString());
-      if (filters.dueBefore) params.append("dateTo", filters.dueBefore.toISOString());
+      if (filters.dueAfter) params.append("dueAfter", filters.dueAfter.toISOString());
+      if (filters.dueBefore) params.append("dueBefore", filters.dueBefore.toISOString());
+
       params.append("sortBy", filters.sortBy);
       params.append("sortOrder", filters.sortOrder);
       params.append("page", filters.page.toString());
       params.append("limit", filters.limit.toString());
 
+      console.log("Fetching credits with params:", params.toString());
       const response = await fetch(`/api/credits?${params}`);
 
       if (!response.ok) {
@@ -95,35 +97,48 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
         throw new Error(data.error || "Failed to fetch credits");
       }
 
-      // Transform credits data to convert date strings to Date objects
-      const creditsWithDates = (data.data || []).map((credit: any) => ({
+      console.log("Raw API response:", data);
+
+      // Transform credits data to convert decimal and date strings
+      const creditsWithTypes = (data.data || []).map((credit: any) => ({
         ...credit,
         createdAt: new Date(credit.createdAt),
         updatedAt: new Date(credit.updatedAt),
-        dueDate: new Date(credit.dueDate),
-        client: credit.client
-          ? {
-              ...credit.client,
-              createdAt: new Date(credit.client.createdAt),
-              updatedAt: new Date(credit.client.updatedAt),
-            }
-          : null,
+        dueDate: credit.dueDate ? new Date(credit.dueDate) : null,
+        totalAmountNumber: parseFloat(credit.totalAmount || "0"),
+        remainingAmountNumber: parseFloat(credit.remainingAmount || "0"),
+        paidAmount: parseFloat(credit.totalAmount || "0") - parseFloat(credit.remainingAmount || "0"),
+        allocations: (credit.allocations || []).map((allocation: any) => ({
+          ...allocation,
+          payment: {
+            ...allocation.payment,
+            paymentDate: new Date(allocation.payment.paymentDate),
+          }
+        }))
       }));
 
-      setCredits(creditsWithDates);
-      setTotalCount(data.pagination.total || 0);
-      setTotalPages(data.pagination.totalPages || 0);
-      setStats(
-        data.data.stats || {
-          totalCredits: 0,
-          openCredits: 0,
-          paidCredits: 0,
-          overdueCredits: 0,
-          totalAmount: 0,
-          totalOutstanding: 0,
-          totalOverdue: 0,
-        },
-      );
+      console.log("Processed credits:", creditsWithTypes);
+
+      setCredits(creditsWithTypes);
+      setTotalCount(data.pagination?.total || 0);
+      setTotalPages(data.pagination?.totalPages || 0);
+
+      // Calculate stats from the response
+      const calculatedStats = {
+        totalCredits: creditsWithTypes.length,
+        openCredits: creditsWithTypes.filter((c: any) => c.status === 'OPEN').length,
+        paidCredits: creditsWithTypes.filter((c: any) => c.status === 'PAID').length,
+        overdueCredits: creditsWithTypes.filter((c: any) => c.status === 'OVERDUE').length,
+        totalAmount: creditsWithTypes.reduce((sum: number, c: any) => sum + c.totalAmountNumber, 0),
+        totalOutstanding: creditsWithTypes
+          .filter((c: any) => c.status === 'OPEN')
+          .reduce((sum: number, c: any) => sum + c.remainingAmountNumber, 0),
+        totalOverdue: creditsWithTypes
+          .filter((c: any) => c.status === 'OVERDUE')
+          .reduce((sum: number, c: any) => sum + c.remainingAmountNumber, 0),
+      };
+
+      setStats(calculatedStats);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);
@@ -278,8 +293,6 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
   // Fetch credits when filters change
   useEffect(() => {
     fetchCredits();
-    console.log("after fetch");
-    console.log(credits);
   }, [fetchCredits]);
 
   return {

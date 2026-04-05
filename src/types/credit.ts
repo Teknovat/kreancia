@@ -30,7 +30,18 @@ export interface Credit {
 /**
  * Extended credit with client information and payment details
  */
-export interface CreditWithDetails extends Credit {
+export interface CreditWithDetails {
+  id: string
+  label: string
+  description?: string | null
+  totalAmount: number        // Simplifié: toujours number
+  remainingAmount: number    // Simplifié: toujours number
+  dueDate: Date | null
+  status: CreditStatus
+  clientId: string
+  merchantId: string
+  createdAt: Date
+  updatedAt: Date
   client: {
     id: string
     firstName: string
@@ -40,18 +51,16 @@ export interface CreditWithDetails extends Credit {
   }
   allocations: {
     id: string
-    amount: Decimal
+    amount: number           // Simplifié: toujours number
     paymentId: string
     payment: {
       id: string
-      amount: Decimal
+      amount: number         // Simplifié: toujours number
       paymentDate: Date
       method: string
     }
   }[]
   paidAmount: number
-  remainingAmountNumber: number
-  totalAmountNumber: number
   daysOverdue: number | null
   isOverdue: boolean
 }

@@ -44,7 +44,18 @@ export interface PaymentAllocation {
 /**
  * Extended payment with client information and allocations
  */
-export interface PaymentWithDetails extends Payment {
+export interface PaymentWithDetails {
+  id: string;
+  amount: number;          // Simplifié: toujours number
+  amountNumber: number;    // Pour compatibilité
+  note?: string | null;
+  method: PaymentMethod;
+  reference?: string | null;
+  paymentDate: Date;
+  clientId: string;
+  merchantId: string;
+  createdAt: Date;
+  updatedAt: Date;
   client: {
     id: string;
     firstName: string;
@@ -52,31 +63,21 @@ export interface PaymentWithDetails extends Payment {
     fullName: string;
     businessName?: string | null;
   };
-  allocations?: {
+  allocations: {
     id: string;
-    amount: Decimal;
-    amountNumber: number;
-    allocatedAmount: Decimal;
+    amount: number;          // Simplifié: toujours number
+    amountNumber: number;    // Pour compatibilité
+    allocatedAmount: number; // Simplifié: toujours number
     credit: {
       id: string;
       label: string;
-      totalAmount: Decimal;
+      totalAmount: number;   // Simplifié: toujours number
       status: string;
     };
   }[];
-  paymentAllocations?: {
-    id: string;
-    allocatedAmount: Decimal;
-    createdAt: Date;
-    credit: {
-      id: string;
-      label: string;
-      totalAmount: Decimal;
-      remainingAmount: Decimal;
-      description?: string | null;
-      status: string;
-      createdAt: Date;
-      updatedAt: Date;
+  totalAllocated: number;    // Total des montants alloués
+  unallocatedAmount: number; // Montant non alloué
+  isFullyAllocated: boolean; // True si entièrement alloué
       dueDate: Date;
     } | null;
   }[];

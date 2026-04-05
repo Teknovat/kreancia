@@ -19,12 +19,10 @@ import type {
  * Client Service Class
  */
 export class ClientService {
-  private prisma: PrismaClient
   private merchantId: string
 
   constructor(merchantId: string) {
     this.merchantId = merchantId
-    this.prisma = new PrismaClient()
   }
 
   /**

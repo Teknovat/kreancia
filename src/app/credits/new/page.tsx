@@ -3,22 +3,13 @@
  * Simple, efficient credit creation form
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  ArrowLeft,
-  Save,
-  User,
-  DollarSign,
-  Calendar,
-  FileText,
-  AlertTriangle,
-  Search
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, Save, User, DollarSign, Calendar, FileText, AlertTriangle, Search } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 
 interface FormData {
   clientId: string;
@@ -43,28 +34,28 @@ export default function NewCreditPage() {
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoadingClients, setIsLoadingClients] = useState(true);
-  const [clientSearch, setClientSearch] = useState('');
+  const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
-    clientId: searchParams?.get('clientId') || '',
-    label: '',
-    totalAmount: '',
-    description: '',
-    dueDate: ''
+    clientId: searchParams?.get("clientId") || "",
+    label: "",
+    totalAmount: "",
+    description: "",
+    dueDate: "",
   });
 
   // Load clients
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const response = await fetch('/api/clients');
+        const response = await fetch("/api/clients");
         if (response.ok) {
           const data = await response.json();
           setClients(data.data?.clients || []);
         }
       } catch (error) {
-        console.error('Error loading clients:', error);
+        console.error("Error loading clients:", error);
       } finally {
         setIsLoadingClients(false);
       }
@@ -74,29 +65,29 @@ export default function NewCreditPage() {
   }, []);
 
   // Filter clients based on search
-  const filteredClients = clients.filter(client => {
+  const filteredClients = clients.filter((client) => {
     const fullName = `${client.firstName} ${client.lastName}`.toLowerCase();
-    const businessName = client.businessName?.toLowerCase() || '';
+    const businessName = client.businessName?.toLowerCase() || "";
     const search = clientSearch.toLowerCase();
 
-    return fullName.includes(search) || businessName.includes(search) || client.email.toLowerCase().includes(search);
+    return fullName.includes(search) || businessName.includes(search) || client?.email?.toLowerCase().includes(search);
   });
 
-  const selectedClient = clients.find(c => c.id === formData.clientId);
+  const selectedClient = clients.find((c) => c.id === formData.clientId);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
 
     if (!formData.clientId) {
-      newErrors.clientId = 'Client requis';
+      newErrors.clientId = "Client requis";
     }
     if (!formData.label.trim()) {
-      newErrors.label = 'Libellé requis';
+      newErrors.label = "Libellé requis";
     }
     if (!formData.totalAmount) {
-      newErrors.totalAmount = 'Montant requis';
+      newErrors.totalAmount = "Montant requis";
     } else if (parseFloat(formData.totalAmount) <= 0) {
-      newErrors.totalAmount = 'Montant doit être positif';
+      newErrors.totalAmount = "Montant doit être positif";
     }
 
     setErrors(newErrors);
@@ -113,39 +104,39 @@ export default function NewCreditPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/credits', {
-        method: 'POST',
+      const response = await fetch("/api/credits", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
           totalAmount: parseFloat(formData.totalAmount),
-          dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null
+          dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
         }),
       });
 
       if (response.ok) {
-        router.push('/credits');
+        router.push("/credits");
       } else {
-        console.error('Error creating credit');
+        console.error("Error creating credit");
       }
     } catch (error) {
-      console.error('Error creating credit:', error);
+      console.error("Error creating credit:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   const selectClient = (client: Client) => {
-    handleChange('clientId', client.id);
+    handleChange("clientId", client.id);
     setClientSearch(`${client.firstName} ${client.lastName}`);
     setShowClientDropdown(false);
   };
@@ -158,18 +149,14 @@ export default function NewCreditPage() {
           <div className="max-w-4xl mx-auto px-6 py-8">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => router.push('/credits')}
+                onClick={() => router.push("/credits")}
                 className="p-2 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
               >
                 <ArrowLeft size={20} />
               </button>
               <div>
-                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                  Nouveau Crédit
-                </h1>
-                <p className="text-lg text-gray-600 mt-2">
-                  Créer un nouveau crédit client
-                </p>
+                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">Nouveau Crédit</h1>
+                <p className="text-lg text-gray-600 mt-2">Créer un nouveau crédit client</p>
               </div>
             </div>
           </div>
@@ -179,9 +166,7 @@ export default function NewCreditPage() {
         <div className="max-w-4xl mx-auto px-6 py-8">
           <form onSubmit={handleSubmit} className="bg-white border-2 border-gray-900">
             <div className="border-b-2 border-gray-900 p-6">
-              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-                Informations Crédit
-              </h2>
+              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Informations Crédit</h2>
             </div>
 
             <div className="p-6 space-y-6">
@@ -200,12 +185,12 @@ export default function NewCreditPage() {
                       setClientSearch(e.target.value);
                       setShowClientDropdown(true);
                       if (!e.target.value) {
-                        handleChange('clientId', '');
+                        handleChange("clientId", "");
                       }
                     }}
                     onFocus={() => setShowClientDropdown(true)}
                     className={`w-full pl-10 pr-4 py-3 border-2 ${
-                      errors.clientId ? 'border-red-500' : 'border-gray-200'
+                      errors.clientId ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     placeholder="Rechercher un client..."
                     disabled={isSubmitting}
@@ -214,7 +199,7 @@ export default function NewCreditPage() {
                   {/* Client Dropdown */}
                   {showClientDropdown && filteredClients.length > 0 && (
                     <div className="absolute top-full left-0 right-0 z-10 border-2 border-gray-900 bg-white max-h-60 overflow-y-auto">
-                      {filteredClients.map(client => (
+                      {filteredClients.map((client) => (
                         <button
                           key={client.id}
                           type="button"
@@ -224,9 +209,7 @@ export default function NewCreditPage() {
                           <div className="font-medium">
                             {client.firstName} {client.lastName}
                           </div>
-                          {client.businessName && (
-                            <div className="text-sm text-gray-600">{client.businessName}</div>
-                          )}
+                          {client.businessName && <div className="text-sm text-gray-600">{client.businessName}</div>}
                           <div className="text-xs text-gray-500">{client.email}</div>
                         </button>
                       ))}
@@ -251,9 +234,9 @@ export default function NewCreditPage() {
                   <input
                     type="text"
                     value={formData.label}
-                    onChange={(e) => handleChange('label', e.target.value)}
+                    onChange={(e) => handleChange("label", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.label ? 'border-red-500' : 'border-gray-200'
+                      errors.label ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     placeholder="ex: Facture #001"
                     disabled={isSubmitting}
@@ -276,9 +259,9 @@ export default function NewCreditPage() {
                     step="0.01"
                     min="0.01"
                     value={formData.totalAmount}
-                    onChange={(e) => handleChange('totalAmount', e.target.value)}
+                    onChange={(e) => handleChange("totalAmount", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.totalAmount ? 'border-red-500' : 'border-gray-200'
+                      errors.totalAmount ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     placeholder="0.00"
                     disabled={isSubmitting}
@@ -300,7 +283,7 @@ export default function NewCreditPage() {
                 <input
                   type="date"
                   value={formData.dueDate}
-                  onChange={(e) => handleChange('dueDate', e.target.value)}
+                  onChange={(e) => handleChange("dueDate", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                   disabled={isSubmitting}
                 />
@@ -312,7 +295,7 @@ export default function NewCreditPage() {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
+                  onChange={(e) => handleChange("description", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                   rows={4}
                   placeholder="Description du crédit..."
@@ -326,7 +309,7 @@ export default function NewCreditPage() {
               <div className="flex gap-4 justify-end">
                 <button
                   type="button"
-                  onClick={() => router.push('/credits')}
+                  onClick={() => router.push("/credits")}
                   className="px-6 py-3 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-all font-medium"
                   disabled={isSubmitting}
                 >
@@ -338,7 +321,7 @@ export default function NewCreditPage() {
                   disabled={isSubmitting}
                 >
                   <Save size={20} />
-                  {isSubmitting ? 'Création...' : 'Créer Crédit'}
+                  {isSubmitting ? "Création..." : "Créer Crédit"}
                 </button>
               </div>
             </div>
@@ -346,12 +329,7 @@ export default function NewCreditPage() {
         </div>
 
         {/* Click outside to close dropdown */}
-        {showClientDropdown && (
-          <div
-            className="fixed inset-0 z-0"
-            onClick={() => setShowClientDropdown(false)}
-          />
-        )}
+        {showClientDropdown && <div className="fixed inset-0 z-0" onClick={() => setShowClientDropdown(false)} />}
       </div>
     </MainLayout>
   );

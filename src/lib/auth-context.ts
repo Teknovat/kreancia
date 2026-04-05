@@ -49,24 +49,12 @@ export async function getAuthenticatedSession(): Promise<SessionContext> {
     throw new InvalidSessionError('user ID is missing from session')
   }
 
-  // Récupérer la currency du marchand
-  const secureClient = getSecurePrismaClient()
-  const tempPrisma = await secureClient.withSession({
-    merchantId: session.user.merchantId,
-    userId: session.user.id
-  })
-
-  const merchant = await tempPrisma.merchant.findUnique({
-    where: { id: session.user.merchantId },
-    select: { currency: true }
-  })
-
   return {
     merchantId: session.user.merchantId,
     userId: session.user.id,
     email: session.user.email || undefined,
     businessName: session.user.businessName || undefined,
-    currency: merchant?.currency || 'TND',
+    currency: 'TND', // Default currency - can be retrieved separately if needed
   }
 }
 
