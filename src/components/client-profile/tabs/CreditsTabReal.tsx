@@ -3,14 +3,12 @@
  * Credit management interface with real API integration
  */
 
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import {
   Plus,
-  Filter,
-  Download,
   Search,
   Calendar,
   DollarSign,
@@ -22,57 +20,59 @@ import {
   Edit,
   Trash2,
   RefreshCw,
-  Loader2
-} from 'lucide-react'
+  Loader2,
+} from "lucide-react";
 
-import { TabContentContainer, TabSectionHeader } from '../ClientProfileTabs'
-import { useCredits } from '@/hooks/useCredits'
-import { cn, formatDate } from '@/lib/utils'
-import { useMerchantCurrency } from '@/hooks/useMerchantCurrency'
-import type { CreditWithDetails } from '@/types/credit'
-import type { ClientWithStats } from '@/types/client'
+import { TabContentContainer, TabSectionHeader } from "../ClientProfileTabs";
+import { useCredits } from "@/hooks/useCredits";
+import { cn, formatDate } from "@/lib/utils";
+import { useMerchantCurrency } from "@/hooks/useMerchantCurrency";
+import type { CreditWithDetails } from "@/types/credit";
+import type { ClientWithStats } from "@/types/client";
 
 /**
  * Credit Status Badge Component
  */
-function CreditStatusBadge({ status }: { status: 'OPEN' | 'PAID' | 'OVERDUE' }) {
+function CreditStatusBadge({ status }: { status: "OPEN" | "PAID" | "OVERDUE" }) {
   const variants = {
     OPEN: {
-      bg: 'bg-blue-100',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
-      dot: 'bg-blue-500',
-      label: 'En cours'
+      bg: "bg-blue-100",
+      text: "text-blue-700",
+      border: "border-blue-200",
+      dot: "bg-blue-500",
+      label: "En cours",
     },
     PAID: {
-      bg: 'bg-green-100',
-      text: 'text-green-700',
-      border: 'border-green-200',
-      dot: 'bg-green-500',
-      label: 'Payé'
+      bg: "bg-green-100",
+      text: "text-green-700",
+      border: "border-green-200",
+      dot: "bg-green-500",
+      label: "Payé",
     },
     OVERDUE: {
-      bg: 'bg-red-100',
-      text: 'text-red-700',
-      border: 'border-red-200',
-      dot: 'bg-red-500',
-      label: 'En retard'
-    }
-  }
+      bg: "bg-red-100",
+      text: "text-red-700",
+      border: "border-red-200",
+      dot: "bg-red-500",
+      label: "En retard",
+    },
+  };
 
-  const variant = variants[status]
+  const variant = variants[status];
 
   return (
-    <span className={cn(
-      'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border',
-      variant.bg,
-      variant.text,
-      variant.border
-    )}>
-      <div className={cn('w-1.5 h-1.5 rounded-full', variant.dot)} />
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border",
+        variant.bg,
+        variant.text,
+        variant.border,
+      )}
+    >
+      <div className={cn("w-1.5 h-1.5 rounded-full", variant.dot)} />
       {variant.label}
     </span>
-  )
+  );
 }
 
 /**
@@ -82,14 +82,14 @@ function CreditActionsDropdown({
   credit,
   onView,
   onEdit,
-  onDelete
+  onDelete,
 }: {
-  credit: CreditWithDetails
-  onView?: (id: string) => void
-  onEdit?: (id: string) => void
-  onDelete?: (id: string) => void
+  credit: CreditWithDetails;
+  onView?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
@@ -110,8 +110,8 @@ function CreditActionsDropdown({
           <div className="py-1">
             <button
               onClick={() => {
-                onView?.(credit.id)
-                setIsOpen(false)
+                onView?.(credit.id);
+                setIsOpen(false);
               }}
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
             >
@@ -120,19 +120,19 @@ function CreditActionsDropdown({
             </button>
             <button
               onClick={() => {
-                onEdit?.(credit.id)
-                setIsOpen(false)
+                onEdit?.(credit.id);
+                setIsOpen(false);
               }}
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
             >
               <Edit size={14} />
               Modifier
             </button>
-            {credit.status !== 'PAID' && (
+            {credit.status !== "PAID" && (
               <button
                 onClick={() => {
-                  onDelete?.(credit.id)
-                  setIsOpen(false)
+                  onDelete?.(credit.id);
+                  setIsOpen(false);
                 }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
               >
@@ -144,7 +144,7 @@ function CreditActionsDropdown({
         </motion.div>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -154,14 +154,14 @@ function CreditCard({
   credit,
   onView,
   onEdit,
-  onDelete
+  onDelete,
 }: {
-  credit: CreditWithDetails
-  onView?: (id: string) => void
-  onEdit?: (id: string) => void
-  onDelete?: (id: string) => void
+  credit: CreditWithDetails;
+  onView?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
-  const progressPercentage = ((credit.totalAmountNumber - credit.remainingAmountNumber) / credit.totalAmountNumber) * 100
+  const progressPercentage = ((credit.totalAmount - credit.remainingAmount) / credit.totalAmount) * 100;
 
   return (
     <motion.div
@@ -182,12 +182,7 @@ function CreditCard({
         </div>
         <div className="flex items-center gap-2">
           <CreditStatusBadge status={credit.status} />
-          <CreditActionsDropdown
-            credit={credit}
-            onView={onView}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+          <CreditActionsDropdown credit={credit} onView={onView} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
 
@@ -195,21 +190,15 @@ function CreditCard({
       <div className="space-y-2 mb-3">
         <div className="flex justify-between text-sm">
           <span className="text-slate-600">Montant total</span>
-          <span className="font-semibold text-slate-900">
-            {formatAmount(credit.totalAmountNumber)}
-          </span>
+          <span className="font-semibold text-slate-900">{credit.totalAmount.toFixed(3)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-slate-600">Payé</span>
-          <span className="font-semibold text-green-600">
-            {formatAmount(credit.paidAmount)}
-          </span>
+          <span className="font-semibold text-green-600">{credit.paidAmount.toFixed(3)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-slate-600">Restant</span>
-          <span className="font-semibold text-blue-600">
-            {formatAmount(credit.remainingAmountNumber)}
-          </span>
+          <span className="font-semibold text-blue-600">{credit.remainingAmount.toFixed(3)}</span>
         </div>
 
         {/* Progress Bar */}
@@ -225,25 +214,19 @@ function CreditCard({
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-1.5 text-slate-600">
           <Calendar size={14} />
-          {credit.dueDate ? (
-            <span>
-              Échéance: {formatDate(credit.dueDate)}
-            </span>
-          ) : (
-            <span>Pas d'échéance</span>
-          )}
+          {credit.dueDate ? <span>Échéance: {formatDate(credit.dueDate)}</span> : <span>Pas d&apos;échéance</span>}
         </div>
         {credit.isOverdue && credit.daysOverdue && (
           <div className="flex items-center gap-1.5 text-red-600">
             <Clock size={14} />
             <span className="font-medium">
-              {credit.daysOverdue} jour{credit.daysOverdue > 1 ? 's' : ''} de retard
+              {credit.daysOverdue} jour{credit.daysOverdue > 1 ? "s" : ""} de retard
             </span>
           </div>
         )}
       </div>
     </motion.div>
-  )
+  );
 }
 
 /**
@@ -251,18 +234,16 @@ function CreditCard({
  */
 function CreditsSummary({ credits }: { credits: CreditWithDetails[] }) {
   const stats = useMemo(() => {
-    const total = credits.length
-    const open = credits.filter(c => c.status === 'OPEN').length
-    const paid = credits.filter(c => c.status === 'PAID').length
-    const overdue = credits.filter(c => c.status === 'OVERDUE').length
-    const totalAmount = credits.reduce((sum, c) => sum + c.totalAmountNumber, 0)
-    const remainingAmount = credits.reduce((sum, c) => sum + c.remainingAmountNumber, 0)
-    const overdueAmount = credits
-      .filter(c => c.status === 'OVERDUE')
-      .reduce((sum, c) => sum + c.remainingAmountNumber, 0)
+    const total = credits.length;
+    const open = credits.filter((c) => c.status === "OPEN").length;
+    const paid = credits.filter((c) => c.status === "PAID").length;
+    const overdue = credits.filter((c) => c.status === "OVERDUE").length;
+    const totalAmount = credits.reduce((sum, c) => sum + c.totalAmount, 0);
+    const remainingAmount = credits.reduce((sum, c) => sum + c.remainingAmount, 0);
+    const overdueAmount = credits.filter((c) => c.status === "OVERDUE").reduce((sum, c) => sum + c.remainingAmount, 0);
 
-    return { total, open, paid, overdue, totalAmount, remainingAmount, overdueAmount }
-  }, [credits])
+    return { total, open, paid, overdue, totalAmount, remainingAmount, overdueAmount };
+  }, [credits]);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -274,9 +255,7 @@ function CreditsSummary({ credits }: { credits: CreditWithDetails[] }) {
           <span className="text-sm font-medium text-blue-900">Total Crédits</span>
         </div>
         <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
-        <div className="text-xs text-blue-600">
-          {formatAmount(stats.totalAmount)} total
-        </div>
+        <div className="text-xs text-blue-600">{stats.totalAmount.toFixed(3)} total</div>
       </div>
 
       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
@@ -300,9 +279,7 @@ function CreditsSummary({ credits }: { credits: CreditWithDetails[] }) {
           <span className="text-sm font-medium text-amber-900">En cours</span>
         </div>
         <div className="text-2xl font-bold text-amber-900">{stats.open}</div>
-        <div className="text-xs text-amber-600">
-          {formatAmount(stats.remainingAmount)} restant
-        </div>
+        <div className="text-xs text-amber-600">{stats.remainingAmount.toFixed(3)} restant</div>
       </div>
 
       <div className="p-4 bg-red-50 rounded-lg border border-red-200">
@@ -313,19 +290,17 @@ function CreditsSummary({ credits }: { credits: CreditWithDetails[] }) {
           <span className="text-sm font-medium text-red-900">En retard</span>
         </div>
         <div className="text-2xl font-bold text-red-900">{stats.overdue}</div>
-        <div className="text-xs text-red-600">
-          {formatAmount(stats.overdueAmount)} en retard
-        </div>
+        <div className="text-xs text-red-600">{stats.overdueAmount.toFixed(3)} en retard</div>
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Main Credits Tab Component with Real Data
  */
 interface CreditsTabRealProps {
-  client: ClientWithStats
+  client: ClientWithStats;
 }
 
 export default function CreditsTabReal({ client }: CreditsTabRealProps) {
@@ -336,119 +311,118 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
     error,
     refetch,
     createCredit,
-    updateCredit,
-    deleteCredit
+    updateCredit: _updateCredit,
+    deleteCredit,
   } = useCredits({
     clientId: client.id,
-    filters: {
-      search: '',
-      status: 'ALL',
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-      page: 1,
-      limit: 100
-    }
-  })
+    search: "",
+    status: "ALL",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+    page: 1,
+    limit: 100,
+  });
 
-  const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency()
+  const { formatAmount: _formatAmount, isLoading: _currencyLoading } = useMerchantCurrency();
 
   // Local state for filters and UI
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('dueDate')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("dueDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Filtered and sorted credits
   const filteredCredits = useMemo(() => {
-    let filtered = credits
+    let filtered = credits;
 
     // Apply search filter
     if (searchQuery.trim()) {
-      filtered = filtered.filter(credit =>
-        credit.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        credit.client.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (credit) =>
+          credit.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          credit.client.fullName.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
     }
 
     // Apply status filter
-    if (statusFilter !== 'all') {
+    if (statusFilter !== "all") {
       const statusMap = {
-        'open': 'OPEN',
-        'paid': 'PAID',
-        'overdue': 'OVERDUE'
-      }
-      filtered = filtered.filter(credit => credit.status === statusMap[statusFilter as keyof typeof statusMap])
+        open: "OPEN",
+        paid: "PAID",
+        overdue: "OVERDUE",
+      };
+      filtered = filtered.filter((credit) => credit.status === statusMap[statusFilter as keyof typeof statusMap]);
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
-      let aValue: any
-      let bValue: any
+      let aValue: any;
+      let bValue: any;
 
       switch (sortBy) {
-        case 'dueDate':
-          aValue = a.dueDate ? new Date(a.dueDate).getTime() : Infinity
-          bValue = b.dueDate ? new Date(b.dueDate).getTime() : Infinity
-          break
-        case 'amount':
-          aValue = a.totalAmountNumber
-          bValue = b.totalAmountNumber
-          break
-        case 'remaining':
-          aValue = a.remainingAmountNumber
-          bValue = b.remainingAmountNumber
-          break
-        case 'created':
+        case "dueDate":
+          aValue = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          bValue = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+          break;
+        case "amount":
+          aValue = a.totalAmount;
+          bValue = b.totalAmount;
+          break;
+        case "remaining":
+          aValue = a.remainingAmount;
+          bValue = b.remainingAmount;
+          break;
+        case "created":
         default:
-          aValue = new Date(a.createdAt).getTime()
-          bValue = new Date(b.createdAt).getTime()
-          break
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
       }
 
-      if (sortOrder === 'desc') {
-        return bValue - aValue
+      if (sortOrder === "desc") {
+        return bValue - aValue;
       }
-      return aValue - bValue
-    })
+      return aValue - bValue;
+    });
 
-    return filtered
-  }, [credits, searchQuery, statusFilter, sortBy, sortOrder])
+    return filtered;
+  }, [credits, searchQuery, statusFilter, sortBy, sortOrder]);
 
   // Event handlers
-  const handleCreateCredit = async (creditData: any) => {
+  const _handleCreateCredit = async (creditData: any) => {
     try {
       await createCredit({
         ...creditData,
-        clientId: client.id
-      })
-      setShowCreateForm(false)
+        clientId: client.id,
+      });
+      setShowCreateForm(false);
     } catch (error) {
-      console.error('Failed to create credit:', error)
+      console.error("Failed to create credit:", error);
       // Could add toast notification here
     }
-  }
+  };
 
   const handleEditCredit = async (creditId: string) => {
     // Implementation for edit modal
-    console.log('Edit credit:', creditId)
-  }
+    console.log("Edit credit:", creditId);
+  };
 
   const handleDeleteCredit = async (creditId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce crédit ?')) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce crédit ?")) {
       try {
-        await deleteCredit(creditId)
+        await deleteCredit(creditId);
       } catch (error) {
-        console.error('Failed to delete credit:', error)
+        console.error("Failed to delete credit:", error);
         // Could add toast notification here
       }
     }
-  }
+  };
 
   const handleViewCredit = (creditId: string) => {
     // Implementation for view modal
-    console.log('View credit:', creditId)
-  }
+    console.log("View credit:", creditId);
+  };
 
   // Loading state
   if (loading) {
@@ -461,7 +435,7 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
           </div>
         </div>
       </TabContentContainer>
-    )
+    );
   }
 
   // Error state
@@ -482,7 +456,7 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
           </button>
         </div>
       </TabContentContainer>
-    )
+    );
   }
 
   return (
@@ -490,7 +464,7 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
       {/* Header with actions */}
       <TabSectionHeader
         title="Gestion des Crédits"
-        subtitle={`${credits.length} crédit${credits.length > 1 ? 's' : ''} au total`}
+        description={`${credits.length} crédit${credits.length > 1 ? "s" : ""} au total`}
       />
 
       {/* Statistics Summary */}
@@ -524,9 +498,9 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
           <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
-              const [field, order] = e.target.value.split('-')
-              setSortBy(field)
-              setSortOrder(order as 'asc' | 'desc')
+              const [field, order] = e.target.value.split("-");
+              setSortBy(field);
+              setSortOrder(order as "asc" | "desc");
             }}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
@@ -575,12 +549,11 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
         <div className="text-center py-12">
           <DollarSign size={48} className="mx-auto mb-3 text-slate-400" />
           <p className="text-slate-600 mb-2">
-            {searchQuery || statusFilter !== 'all'
-              ? 'Aucun crédit ne correspond à vos critères'
-              : 'Aucun crédit enregistré'
-            }
+            {searchQuery || statusFilter !== "all"
+              ? "Aucun crédit ne correspond à vos critères"
+              : "Aucun crédit enregistré"}
           </p>
-          {!searchQuery && statusFilter === 'all' && (
+          {!searchQuery && statusFilter === "all" && (
             <button
               onClick={() => setShowCreateForm(true)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -616,7 +589,7 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Date d'échéance (optionnel)</label>
+                <label className="block text-sm font-medium mb-1">Date d&apos;échéance (optionnel)</label>
                 <input
                   type="date"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -632,7 +605,7 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
                 <button
                   onClick={() => {
                     // Handle form submission here
-                    setShowCreateForm(false)
+                    setShowCreateForm(false);
                   }}
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
@@ -644,5 +617,5 @@ export default function CreditsTabReal({ client }: CreditsTabRealProps) {
         </div>
       )}
     </TabContentContainer>
-  )
+  );
 }

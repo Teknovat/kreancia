@@ -35,11 +35,4 @@ export function validateEnv() {
 // Export validated environment variables
 export const env = validateEnv()
 
-// Type-safe environment variables
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv extends z.infer<typeof envSchema> {}
-  }
-}
-
 export default env

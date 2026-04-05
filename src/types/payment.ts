@@ -20,7 +20,7 @@ export type AllocationMode = "FIFO" | "MANUAL";
  */
 export interface Payment {
   id: string;
-  amount: Decimal;
+  amount: number;
   note: string | null;
   method: PaymentMethod;
   reference: string | null;
@@ -46,8 +46,7 @@ export interface PaymentAllocation {
  */
 export interface PaymentWithDetails {
   id: string;
-  amount: number;          // Simplifié: toujours number
-  amountNumber: number;    // Pour compatibilité
+  amount: number; // Simplifié: toujours number
   note?: string | null;
   method: PaymentMethod;
   reference?: string | null;
@@ -65,26 +64,18 @@ export interface PaymentWithDetails {
   };
   allocations: {
     id: string;
-    amount: number;          // Simplifié: toujours number
-    amountNumber: number;    // Pour compatibilité
+    amount: number; // Simplifié: toujours number
     allocatedAmount: number; // Simplifié: toujours number
     credit: {
       id: string;
       label: string;
-      totalAmount: number;   // Simplifié: toujours number
+      totalAmount: number; // Simplifié: toujours number
       status: string;
     };
   }[];
-  totalAllocated: number;    // Total des montants alloués
+  totalAllocated: number; // Total des montants alloués
   unallocatedAmount: number; // Montant non alloué
   isFullyAllocated: boolean; // True si entièrement alloué
-      dueDate: Date;
-    } | null;
-  }[];
-  amountNumber?: number;
-  totalAllocated?: number;
-  unallocatedAmount?: number;
-  isFullyAllocated?: boolean;
 }
 
 /**
@@ -129,7 +120,7 @@ export interface PaymentUpdateData {
 /**
  * Payment update data for API
  */
-export interface UpdatePaymentData extends PaymentUpdateData {}
+export type UpdatePaymentData = PaymentUpdateData;
 
 /**
  * Manual allocation item for payment creation
@@ -160,7 +151,7 @@ export interface PaymentFilters {
   dateTo?: Date;
   minAmount?: number;
   maxAmount?: number;
-  isFullyAllocated: boolean;
+  isFullyAllocated?: boolean;
   sortBy: "paymentDate" | "amount" | "client" | "createdAt";
   sortOrder: "asc" | "desc";
   page: number;

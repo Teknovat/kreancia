@@ -62,7 +62,7 @@ export default function PaymentDetailPage() {
         } else {
           setError("Paiement non trouvé");
         }
-      } catch (err) {
+      } catch {
         setError("Erreur lors du chargement");
       } finally {
         setIsLoading(false);
@@ -172,7 +172,7 @@ export default function PaymentDetailPage() {
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Montant:</span>
-                  <span className="font-bold text-gray-900 text-xl">{payment.amount.toFixed(2)} TND</span>
+                  <span className="font-bold text-gray-900 text-xl">{payment.amount.toFixed(3)} TND</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Date de paiement:</span>
@@ -221,15 +221,15 @@ export default function PaymentDetailPage() {
                 <div className="grid grid-cols-3 gap-4 text-center mb-6">
                   <div className="border-2 border-gray-200 p-4">
                     <p className="text-sm text-gray-600 uppercase tracking-wide mb-2">Total Reçu</p>
-                    <p className="font-bold text-gray-900 text-xl">{payment.amount.toFixed(2)} TND</p>
+                    <p className="font-bold text-gray-900 text-xl">{payment.amount.toFixed(3)} TND</p>
                   </div>
                   <div className="border-2 border-gray-200 p-4">
                     <p className="text-sm text-gray-600 uppercase tracking-wide mb-2">Alloué</p>
-                    <p className="font-bold text-green-600 text-xl">{totalAllocated.toFixed(2)} TND</p>
+                    <p className="font-bold text-green-600 text-xl">{totalAllocated.toFixed(3)} TND</p>
                   </div>
                   <div className="border-2 border-gray-200 p-4">
                     <p className="text-sm text-gray-600 uppercase tracking-wide mb-2">Non Alloué</p>
-                    <p className="font-bold text-blue-600 text-xl">{unallocated.toFixed(2)} TND</p>
+                    <p className="font-bold text-blue-600 text-xl">{unallocated.toFixed(3)} TND</p>
                   </div>
                 </div>
 
@@ -246,11 +246,11 @@ export default function PaymentDetailPage() {
                           <div>
                             <p className="font-medium text-gray-900">{allocation.credit.label}</p>
                             <p className="text-sm text-gray-600">
-                              Crédit: {allocation.credit.totalAmount.toFixed(2)} TND
+                              Crédit: {allocation.credit.totalAmount.toFixed(3)} TND
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-green-600">{allocation.allocatedAmount.toFixed(2)} TND</p>
+                            <p className="font-bold text-green-600">{allocation.allocatedAmount.toFixed(3)} TND</p>
                             <button
                               onClick={() => router.push(`/credits/${allocation.credit.id}`)}
                               className="text-xs text-gray-500 hover:text-gray-700"
@@ -267,7 +267,7 @@ export default function PaymentDetailPage() {
                 {unallocated > 0 && (
                   <div className="mt-6 p-4 border-2 border-blue-200 bg-blue-50">
                     <p className="text-blue-800 font-medium">
-                      {unallocated.toFixed(2)} TND n'est pas encore alloué à un crédit spécifique.
+                      {unallocated.toFixed(3)} TND n&apos;est pas encore alloué à un crédit spécifique.
                     </p>
                   </div>
                 )}

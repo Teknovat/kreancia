@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import type { ClientWithStats, ClientFilters, CreateClientData, UpdateClientData } from "@/types/client";
+import type { ClientWithStats, ClientFilters, ClientFormData } from "@/types/client";
 
 interface UseClientsResponse {
   clients: ClientWithStats[];
@@ -22,8 +22,8 @@ interface UseClientsResponse {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  createClient: (data: CreateClientData) => Promise<ClientWithStats | null>;
-  updateClient: (id: string, data: UpdateClientData) => Promise<ClientWithStats | null>;
+  createClient: (data: ClientFormData) => Promise<ClientWithStats | null>;
+  updateClient: (id: string, data: ClientFormData) => Promise<ClientWithStats | null>;
   deleteClient: (id: string) => Promise<boolean>;
   filters: ClientFilters;
   setFilters: (filters: ClientFilters | ((prev: ClientFilters) => ClientFilters)) => void;
@@ -129,7 +129,7 @@ export function useClients(initialFilters?: Partial<ClientFilters>): UseClientsR
    * Create a new client
    */
   const createClient = useCallback(
-    async (data: CreateClientData): Promise<ClientWithStats | null> => {
+    async (data: ClientFormData): Promise<ClientWithStats | null> => {
       try {
         setError(null);
 
@@ -170,7 +170,7 @@ export function useClients(initialFilters?: Partial<ClientFilters>): UseClientsR
    * Update an existing client
    */
   const updateClient = useCallback(
-    async (id: string, data: UpdateClientData): Promise<ClientWithStats | null> => {
+    async (id: string, data: ClientFormData): Promise<ClientWithStats | null> => {
       try {
         setError(null);
 

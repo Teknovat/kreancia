@@ -109,27 +109,27 @@ export function usePayments(initialFilters?: Partial<PaymentFilters>): UsePaymen
         createdAt: new Date(payment.createdAt),
         updatedAt: new Date(payment.updatedAt),
         paymentDate: new Date(payment.paymentDate),
-        amountNumber: parseFloat(payment.amount || "0"),
-        totalAllocated: payment.allocations?.reduce((sum: number, alloc: any) =>
-          sum + parseFloat(alloc.amount || "0"), 0) || 0,
-        unallocatedAmount: parseFloat(payment.amount || "0") - (payment.allocations?.reduce((sum: number, alloc: any) =>
-          sum + parseFloat(alloc.amount || "0"), 0) || 0),
-        isFullyAllocated: payment.allocations?.reduce((sum: number, alloc: any) =>
-          sum + parseFloat(alloc.amount || "0"), 0) >= parseFloat(payment.amount || "0"),
-        allocations: (payment.allocations || []).map((allocation: any) => ({
-          ...allocation,
-          amountNumber: parseFloat(allocation.amount || "0"),
-        })),
+        totalAllocated:
+          payment.allocations?.reduce((sum: number, alloc: any) => sum + parseFloat(alloc.amount || "0"), 0) || 0,
+        unallocatedAmount:
+          parseFloat(payment.amount || "0") -
+          (payment.allocations?.reduce((sum: number, alloc: any) => sum + parseFloat(alloc.amount || "0"), 0) || 0),
+        isFullyAllocated:
+          payment.allocations?.reduce((sum: number, alloc: any) => sum + parseFloat(alloc.amount || "0"), 0) >=
+          parseFloat(payment.amount || "0"),
+        allocations: payment.allocations || [],
         paymentAllocations: (payment.paymentAllocations || []).map((allocation: any) => ({
           ...allocation,
           createdAt: new Date(allocation.createdAt),
-          credit: allocation.credit ? {
-            ...allocation.credit,
-            createdAt: new Date(allocation.credit.createdAt),
-            updatedAt: new Date(allocation.credit.updatedAt),
-            dueDate: allocation.credit.dueDate ? new Date(allocation.credit.dueDate) : null,
-          } : null,
-        }))
+          credit: allocation.credit
+            ? {
+                ...allocation.credit,
+                createdAt: new Date(allocation.credit.createdAt),
+                updatedAt: new Date(allocation.credit.updatedAt),
+                dueDate: allocation.credit.dueDate ? new Date(allocation.credit.dueDate) : null,
+              }
+            : null,
+        })),
       }));
 
       console.log("Processed payments:", paymentsWithTypes);
@@ -139,8 +139,8 @@ export function usePayments(initialFilters?: Partial<PaymentFilters>): UsePaymen
       setTotalPages(data.pagination?.totalPages || 0);
 
       // Calculate stats from the response
-      const totalAmount = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.amountNumber, 0);
-      const totalAllocated = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.totalAllocated, 0);
+      const totalAmount = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.amount, 0);
+      const _totalAllocated = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.totalAllocated, 0);
 
       const calculatedStats = {
         totalPayments: paymentsWithTypes.length,

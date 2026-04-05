@@ -100,7 +100,7 @@ export interface CreditUpdateData {
 /**
  * Credit update data for API
  */
-export interface UpdateCreditData extends CreditUpdateData {}
+export type UpdateCreditData = CreditUpdateData
 
 /**
  * Credit filters for listing

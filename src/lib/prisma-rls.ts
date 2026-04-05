@@ -71,10 +71,8 @@ export class SecurePrismaClient {
    * Creates a proxy that ensures all operations include merchantId validation
    */
   private createSecureProxy(): TenantPrismaClient {
-    const self = this
-
     return new Proxy(this.prisma as TenantPrismaClient, {
-      get(target, prop, receiver) {
+      get: (target, prop, receiver) => {
         const originalMethod = target[prop as keyof TenantPrismaClient]
 
         // If it's not a model operation, pass through
@@ -84,7 +82,7 @@ export class SecurePrismaClient {
 
         // For model operations, wrap them with security checks
         return new Proxy(originalMethod, {
-          get(modelTarget, modelProp) {
+          get: (modelTarget, modelProp) => {
             const modelMethod = modelTarget[modelProp as keyof typeof modelTarget]
 
             if (typeof modelMethod !== 'function') {
@@ -92,9 +90,9 @@ export class SecurePrismaClient {
             }
 
             // Wrap database operations with security validation
-            return function (...args: any[]) {
-              // Verify merchantId is still set
-              if (!self.merchantId) {
+            return (...args: any[]) => {
+              // Verify merchantId is still set - arrow function preserves 'this' context
+              if (!this.merchantId) {
                 throw new MissingMerchantIdError(`${String(prop)}.${String(modelProp)}`)
               }
 

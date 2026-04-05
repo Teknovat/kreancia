@@ -12,7 +12,6 @@ import {
   Plus,
   MoreHorizontal,
   Users,
-  TrendingUp,
   AlertTriangle,
   RefreshCw
 } from 'lucide-react';
@@ -32,7 +31,6 @@ import {
 } from '@/components/ui/redesigned';
 import { useClients } from '@/hooks/useClients';
 import { useMerchantCurrency } from '@/hooks/useMerchantCurrency';
-import { formatDate } from '@/lib/utils';
 import type { ClientWithStats } from '@/types/client';
 
 /**
@@ -46,7 +44,7 @@ interface ClientTableProps {
   formatAmount: (amount: number) => string;
 }
 
-function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: ClientTableProps) {
+function ClientTable({ clients, loading, onEdit, onDelete: _onDelete, formatAmount }: ClientTableProps) {
   if (loading) {
     return (
       <Card>
@@ -180,15 +178,15 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
 export default function ClientsPageRedesigned() {
   const {
     clients,
-    totalCount,
-    totalPages,
+    totalCount: _totalCount,
+    totalPages: _totalPages,
     stats,
     loading,
     error,
     refetch,
     deleteClient,
-    filters,
-    setFilters
+    filters: _filters,
+    setFilters: _setFilters
   } = useClients();
 
   const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency();

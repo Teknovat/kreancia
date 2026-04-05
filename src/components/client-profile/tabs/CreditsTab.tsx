@@ -1,73 +1,74 @@
-'use client'
+"use client";
 
 /**
  * Credits Tab
  * Credit management interface with list, filtering, and actions
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo } from "react";
 import {
   Plus,
-  Filter,
-  Download,
   Search,
-  CreditCard,
+  CreditCard as CreditCardIcon,
   Calendar,
   DollarSign,
   Clock,
-  CheckCircle,
   AlertTriangle,
+  Download,
   MoreHorizontal,
   Eye,
   Edit,
-  Trash2
-} from 'lucide-react'
+  Trash2,
+} from "lucide-react";
 
-import { TabContentContainer, TabSectionHeader } from '../ClientProfileTabs'
-import type { CreditsTabProps, CreditWithDetails } from '@/types/client-profile'
-import { cn } from '@/lib/utils'
+import { motion } from "framer-motion";
+import { TabContentContainer, TabSectionHeader } from "../ClientProfileTabs";
+import type { CreditsTabProps, CreditWithDetails } from "@/types/client-profile";
+import { cn } from "@/lib/utils";
 
 /**
  * Credit Status Badge Component
  */
-function CreditStatusBadge({ status }: { status: 'OPEN' | 'PAID' | 'OVERDUE' }) {
+function CreditStatusBadge({ status }: { status: "OPEN" | "PAID" | "OVERDUE" }) {
   const variants = {
     OPEN: {
-      bg: 'bg-blue-100',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
-      dot: 'bg-blue-500',
-      label: 'En cours'
+      bg: "bg-blue-100",
+      text: "text-blue-700",
+      border: "border-blue-200",
+      dot: "bg-blue-500",
+      label: "En cours",
     },
     PAID: {
-      bg: 'bg-green-100',
-      text: 'text-green-700',
-      border: 'border-green-200',
-      dot: 'bg-green-500',
-      label: 'Payé'
+      bg: "bg-green-100",
+      text: "text-green-700",
+      border: "border-green-200",
+      dot: "bg-green-500",
+      label: "Payé",
     },
     OVERDUE: {
-      bg: 'bg-red-100',
-      text: 'text-red-700',
-      border: 'border-red-200',
-      dot: 'bg-red-500',
-      label: 'En retard'
-    }
-  }
+      bg: "bg-red-100",
+      text: "text-red-700",
+      border: "border-red-200",
+      dot: "bg-red-500",
+      label: "En retard",
+    },
+  };
 
-  const variant = variants[status]
+  const variant = variants[status];
 
   return (
-    <span className={cn(
-      'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border',
-      variant.bg,
-      variant.text,
-      variant.border
-    )}>
-      <div className={cn('w-1.5 h-1.5 rounded-full', variant.dot)} />
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border",
+        variant.bg,
+        variant.text,
+        variant.border,
+      )}
+    >
+      <div className={cn("w-1.5 h-1.5 rounded-full", variant.dot)} />
       {variant.label}
     </span>
-  )
+  );
 }
 
 /**
@@ -77,14 +78,14 @@ function CreditActionsDropdown({
   credit,
   onView,
   onEdit,
-  onDelete
+  onDelete,
 }: {
-  credit: CreditWithDetails
-  onView?: (id: string) => void
-  onEdit?: (id: string) => void
-  onDelete?: (id: string) => void
+  credit: CreditWithDetails;
+  onView?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
@@ -96,16 +97,12 @@ function CreditActionsDropdown({
       </button>
 
       {isOpen && (
-        <div
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10"
-        >
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-10">
           {onView && (
             <button
               onClick={() => {
-                onView(credit.id)
-                setIsOpen(false)
+                onView(credit.id);
+                setIsOpen(false);
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
             >
@@ -116,8 +113,8 @@ function CreditActionsDropdown({
           {onEdit && (
             <button
               onClick={() => {
-                onEdit(credit.id)
-                setIsOpen(false)
+                onEdit(credit.id);
+                setIsOpen(false);
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
             >
@@ -130,8 +127,8 @@ function CreditActionsDropdown({
               <div className="h-px bg-slate-100 my-1" />
               <button
                 onClick={() => {
-                  onDelete(credit.id)
-                  setIsOpen(false)
+                  onDelete(credit.id);
+                  setIsOpen(false);
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-700 hover:bg-red-50"
               >
@@ -143,32 +140,28 @@ function CreditActionsDropdown({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 /**
  * Credit Card Component for Mobile View
  */
-function CreditCard({
+function _CreditCard({
   credit,
   onView,
   onEdit,
-  onDelete
+  onDelete,
 }: {
-  credit: CreditWithDetails
-  onView?: (id: string) => void
-  onEdit?: (id: string) => void
-  onDelete?: (id: string) => void
+  credit: CreditWithDetails;
+  onView?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
-  const isOverdue = credit.status === 'OVERDUE'
-  const daysOverdue = isOverdue ? Math.floor((Date.now() - credit.dueDate.getTime()) / (1000 * 60 * 60 * 24)) : 0
+  const isOverdue = credit.status === "OVERDUE";
+  const daysOverdue = isOverdue ? Math.floor((Date.now() - credit.dueDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
   return (
-    <div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow duration-200"
-    >
+    <div className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow duration-200">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
@@ -176,36 +169,24 @@ function CreditCard({
             <CreditStatusBadge status={credit.status} />
             {isOverdue && (
               <span className="text-xs text-red-600 font-medium">
-                {daysOverdue} jour{daysOverdue > 1 ? 's' : ''} de retard
+                {daysOverdue} jour{daysOverdue > 1 ? "s" : ""} de retard
               </span>
             )}
           </div>
-          {credit.description && (
-            <p className="text-sm text-slate-600">{credit.description}</p>
-          )}
+          {credit.description && <p className="text-sm text-slate-600">{credit.description}</p>}
         </div>
-        <CreditActionsDropdown
-          credit={credit}
-          onView={onView}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <CreditActionsDropdown credit={credit} onView={onView} onEdit={onEdit} onDelete={onDelete} />
       </div>
 
       {/* Amounts */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <p className="text-xs text-slate-500">Montant Total</p>
-          <p className="font-semibold text-slate-900">
-            {credit.totalAmount}
-          </p>
+          <p className="font-semibold text-slate-900">{credit.totalAmount}</p>
         </div>
         <div>
           <p className="text-xs text-slate-500">Reste à Payer</p>
-          <p className={cn(
-            'font-semibold',
-            credit.remainingAmount > 0 ? 'text-amber-600' : 'text-green-600'
-          )}>
+          <p className={cn("font-semibold", credit.remainingAmount > 0 ? "text-amber-600" : "text-green-600")}>
             {credit.remainingAmount}
           </p>
         </div>
@@ -215,15 +196,15 @@ function CreditCard({
       <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
         <div className="flex items-center gap-1">
           <Calendar size={12} />
-          Échéance : {credit.dueDate.toLocaleDateString('fr-FR')}
+          Échéance : {credit.dueDate.toLocaleDateString("fr-FR")}
         </div>
         <div className="flex items-center gap-1">
           <Clock size={12} />
-          Créé le {credit.createdAt.toLocaleDateString('fr-FR')}
+          Créé le {credit.createdAt.toLocaleDateString("fr-FR")}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -235,28 +216,28 @@ function CreditsFilter({
   statusFilter,
   onStatusFilterChange,
   sortBy,
-  onSortByChange
+  onSortByChange,
 }: {
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  statusFilter: string
-  onStatusFilterChange: (status: string) => void
-  sortBy: string
-  onSortByChange: (sortBy: string) => void
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (status: string) => void;
+  sortBy: string;
+  onSortByChange: (sortBy: string) => void;
 }) {
   const statusOptions = [
-    { value: 'all', label: 'Tous les statuts' },
-    { value: 'OPEN', label: 'En cours' },
-    { value: 'OVERDUE', label: 'En retard' },
-    { value: 'PAID', label: 'Payés' }
-  ]
+    { value: "all", label: "Tous les statuts" },
+    { value: "OPEN", label: "En cours" },
+    { value: "OVERDUE", label: "En retard" },
+    { value: "PAID", label: "Payés" },
+  ];
 
   const sortOptions = [
-    { value: 'dueDate', label: 'Date d\'échéance' },
-    { value: 'createdAt', label: 'Date de création' },
-    { value: 'totalAmount', label: 'Montant total' },
-    { value: 'remainingAmount', label: 'Montant restant' }
-  ]
+    { value: "dueDate", label: "Date d'échéance" },
+    { value: "createdAt", label: "Date de création" },
+    { value: "totalAmount", label: "Montant total" },
+    { value: "remainingAmount", label: "Montant restant" },
+  ];
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
@@ -300,7 +281,7 @@ function CreditsFilter({
         </select>
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -311,114 +292,93 @@ export default function CreditsTab({
   credits: initialCredits,
   onCreateCredit,
   onEditCredit,
-  onRefresh
+  onRefresh: _onRefresh,
 }: CreditsTabProps) {
-  // Mock credits data (replace with real data)
-  const mockCredits: CreditWithDetails[] = [
-    {
-      id: '1',
-      totalAmount: 1500,
-      remainingAmount: 800,
-      dueDate: new Date('2024-03-15'),
-      status: 'OVERDUE',
-      description: 'Achat de marchandises',
-      createdAt: new Date('2024-02-01'),
-      paymentAllocations: []
-    },
-    {
-      id: '2',
-      totalAmount: 2200,
-      remainingAmount: 2200,
-      dueDate: new Date('2024-04-20'),
-      status: 'OPEN',
-      description: 'Services de consulting',
-      createdAt: new Date('2024-03-20'),
-      paymentAllocations: []
-    },
-    {
-      id: '3',
-      totalAmount: 950,
-      remainingAmount: 0,
-      dueDate: new Date('2024-02-28'),
-      status: 'PAID',
-      description: 'Formation équipe',
-      createdAt: new Date('2024-01-15'),
-      paymentAllocations: []
-    }
-  ]
-
-  const credits = initialCredits || mockCredits
+  const credits = initialCredits;
 
   // Filter and search state
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('dueDate')
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("dueDate");
 
   // Filter and sort credits
   const filteredCredits = useMemo(() => {
-    let filtered = credits
+    if (!credits) return [];
+
+    let filtered = credits;
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter(credit =>
-        credit.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        credit.id.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (credit) =>
+          credit.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          credit.id.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
     }
 
     // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(credit => credit.status === statusFilter)
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((credit) => credit.status === statusFilter);
     }
 
     // Apply sorting
     filtered = filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'dueDate':
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-        case 'createdAt':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        case 'totalAmount':
-          return b.totalAmount - a.totalAmount
-        case 'remainingAmount':
-          return b.remainingAmount - a.remainingAmount
+        case "dueDate":
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        case "createdAt":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "totalAmount":
+          return b.totalAmount - a.totalAmount;
+        case "remainingAmount":
+          return b.remainingAmount - a.remainingAmount;
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
-    return filtered
-  }, [credits, searchQuery, statusFilter, sortBy])
+    return filtered;
+  }, [credits, searchQuery, statusFilter, sortBy]);
 
   // Calculate summary stats
   const stats = useMemo(() => {
-    const totalCredits = credits.length
-    const openCredits = credits.filter(c => c.status === 'OPEN').length
-    const overdueCredits = credits.filter(c => c.status === 'OVERDUE').length
-    const totalAmount = credits.reduce((sum, c) => sum + c.totalAmount, 0)
-    const totalRemaining = credits.reduce((sum, c) => sum + c.remainingAmount, 0)
+    if (!credits) {
+      return {
+        totalCredits: 0,
+        openCredits: 0,
+        overdueCredits: 0,
+        totalAmount: 0,
+        totalRemaining: 0,
+      };
+    }
+
+    const totalCredits = credits.length;
+    const openCredits = credits.filter((c) => c.status === "OPEN").length;
+    const overdueCredits = credits.filter((c) => c.status === "OVERDUE").length;
+    const totalAmount = credits.reduce((sum, c) => sum + c.totalAmount, 0);
+    const totalRemaining = credits.reduce((sum, c) => sum + c.remainingAmount, 0);
 
     return {
       totalCredits,
       openCredits,
       overdueCredits,
       totalAmount,
-      totalRemaining
-    }
-  }, [credits])
+      totalRemaining,
+    };
+  }, [credits]);
 
   return (
     <TabContentContainer>
       {/* Header with Actions */}
       <TabSectionHeader
         title="Gestion des Crédits"
-        description={`${stats.totalCredits} crédit${stats.totalCredits > 1 ? 's' : ''} · ${stats.totalRemaining} restant à payer`}
+        description={`${stats.totalCredits} crédit${stats.totalCredits > 1 ? "s" : ""} · ${stats.totalRemaining} restant à payer`}
         action={
           <div className="flex gap-2">
             <button
               onClick={() => {
                 // TODO: Export credits
-                console.log('Export credits for', client.id)
+                console.log("Export credits for", client.id);
               }}
               className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-slate-300 rounded-lg hover:bg-slate-50"
             >
@@ -426,7 +386,7 @@ export default function CreditsTab({
               Exporter
             </button>
             <button
-              onClick={onCreateCredit || (() => console.log('Create credit for', client.id))}
+              onClick={onCreateCredit || (() => console.log("Create credit for", client.id))}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               <Plus size={16} />
@@ -444,7 +404,7 @@ export default function CreditsTab({
               <p className="text-sm text-blue-600">Crédits Actifs</p>
               <p className="text-2xl font-bold text-blue-900">{stats.openCredits}</p>
             </div>
-            <CreditCard className="text-blue-500" size={24} />
+            <CreditCardIcon className="text-blue-500" size={24} />
           </div>
         </div>
 
@@ -462,9 +422,7 @@ export default function CreditsTab({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-amber-600">Montant Total</p>
-              <p className="text-lg font-bold text-amber-900">
-                {stats.totalAmount}
-              </p>
+              <p className="text-lg font-bold text-amber-900">{stats.totalAmount}</p>
             </div>
             <DollarSign className="text-amber-500" size={24} />
           </div>
@@ -474,9 +432,7 @@ export default function CreditsTab({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-green-600">Restant</p>
-              <p className="text-lg font-bold text-green-900">
-                {stats.totalRemaining}
-              </p>
+              <p className="text-lg font-bold text-green-900">{stats.totalRemaining}</p>
             </div>
             <Clock className="text-green-500" size={24} />
           </div>
@@ -511,8 +467,10 @@ export default function CreditsTab({
               </thead>
               <tbody>
                 {filteredCredits.map((credit, index) => {
-                  const isOverdue = credit.status === 'OVERDUE'
-                  const daysOverdue = isOverdue ? Math.floor((Date.now() - credit.dueDate.getTime()) / (1000 * 60 * 60 * 24)) : 0
+                  const isOverdue = credit.status === "OVERDUE";
+                  const daysOverdue = isOverdue
+                    ? Math.floor((Date.now() - credit.dueDate.getTime()) / (1000 * 60 * 60 * 24))
+                    : 0;
 
                   return (
                     <motion.tr
@@ -525,11 +483,9 @@ export default function CreditsTab({
                       <td className="py-4 px-4">
                         <div>
                           <p className="font-semibold text-slate-900">Crédit #{credit.id}</p>
-                          {credit.description && (
-                            <p className="text-sm text-slate-500">{credit.description}</p>
-                          )}
+                          {credit.description && <p className="text-sm text-slate-500">{credit.description}</p>}
                           <p className="text-xs text-slate-400 mt-1">
-                            Créé le {credit.createdAt.toLocaleDateString('fr-FR')}
+                            Créé le {credit.createdAt.toLocaleDateString("fr-FR")}
                           </p>
                         </div>
                       </td>
@@ -538,22 +494,22 @@ export default function CreditsTab({
                         <CreditStatusBadge status={credit.status} />
                         {isOverdue && (
                           <div className="text-xs text-red-600 mt-1">
-                            {daysOverdue} jour{daysOverdue > 1 ? 's' : ''} de retard
+                            {daysOverdue} jour{daysOverdue > 1 ? "s" : ""} de retard
                           </div>
                         )}
                       </td>
 
                       <td className="py-4 px-4 text-right">
-                        <p className="font-semibold text-slate-900">
-                          {credit.totalAmount}
-                        </p>
+                        <p className="font-semibold text-slate-900">{credit.totalAmount}</p>
                       </td>
 
                       <td className="py-4 px-4 text-right">
-                        <p className={cn(
-                          'font-semibold',
-                          credit.remainingAmount > 0 ? 'text-amber-600' : 'text-green-600'
-                        )}>
+                        <p
+                          className={cn(
+                            "font-semibold",
+                            credit.remainingAmount > 0 ? "text-amber-600" : "text-green-600",
+                          )}
+                        >
                           {credit.remainingAmount}
                         </p>
                       </td>
@@ -561,22 +517,20 @@ export default function CreditsTab({
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <Calendar size={14} className="text-slate-400" />
-                          <span className="text-sm text-slate-600">
-                            {credit.dueDate.toLocaleDateString('fr-FR')}
-                          </span>
+                          <span className="text-sm text-slate-600">{credit.dueDate.toLocaleDateString("fr-FR")}</span>
                         </div>
                       </td>
 
                       <td className="py-4 px-4">
                         <CreditActionsDropdown
                           credit={credit}
-                          onView={(id) => console.log('View credit', id)}
+                          onView={(id) => console.log("View credit", id)}
                           onEdit={onEditCredit}
-                          onDelete={(id) => console.log('Delete credit', id)}
+                          onDelete={(id) => console.log("Delete credit", id)}
                         />
                       </td>
                     </motion.tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -585,35 +539,34 @@ export default function CreditsTab({
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-4">
             {filteredCredits.map((credit) => (
-              <CreditCard
+              <_CreditCard
                 key={credit.id}
                 credit={credit}
-                onView={(id) => console.log('View credit', id)}
+                onView={(id) => console.log("View credit", id)}
                 onEdit={onEditCredit}
-                onDelete={(id) => console.log('Delete credit', id)}
+                onDelete={(id) => console.log("Delete credit", id)}
               />
             ))}
           </div>
         </>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-          <CreditCard size={48} className="mx-auto text-slate-300 mb-4" />
+          <CreditCardIcon size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-lg font-semibold text-slate-900 mb-2">Aucun crédit trouvé</h3>
           <p className="text-slate-600 mb-6">
-            {searchQuery || statusFilter !== 'all'
-              ? 'Aucun crédit ne correspond à vos critères de recherche.'
-              : `Aucun crédit n'a encore été accordé à ${client.fullName}.`
-            }
+            {searchQuery || statusFilter !== "all"
+              ? "Aucun crédit ne correspond à vos critères de recherche."
+              : `Aucun crédit n'a encore été accordé à ${client.fullName}.`}
           </p>
           <button
-            onClick={onCreateCredit || (() => console.log('Create first credit'))}
+            onClick={onCreateCredit || (() => console.log("Create first credit"))}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
             <Plus size={16} />
-            {searchQuery || statusFilter !== 'all' ? 'Nouveau Crédit' : 'Premier Crédit'}
+            {searchQuery || statusFilter !== "all" ? "Nouveau Crédit" : "Premier Crédit"}
           </button>
         </div>
       )}
     </TabContentContainer>
-  )
+  );
 }

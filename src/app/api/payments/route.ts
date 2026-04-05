@@ -37,6 +37,7 @@ const paymentFiltersSchema = z.object({
   dateTo: z.string().datetime().optional(),
   minAmount: z.coerce.number().positive().optional(),
   maxAmount: z.coerce.number().positive().optional(),
+  isFullyAllocated: z.boolean().optional(),
   sortBy: z.enum(["paymentDate", "amount", "client", "createdAt"]).default("paymentDate"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
   page: z.coerce.number().int().positive().default(1),
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
       const unallocated = payment.unallocatedAmount;
 
       if (unallocated > 0.01) {
-        message += `. ${totalAllocated} allocated automatically, ${unallocated.toFixed(2)} remains unallocated.`;
+        message += `. ${totalAllocated} allocated automatically, ${unallocated.toFixed(3)} remains unallocated.`;
       } else {
         message += ` and fully allocated using FIFO method.`;
       }

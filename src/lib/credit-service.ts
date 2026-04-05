@@ -3,10 +3,8 @@
  * Handles all credit-related database operations with RLS
  */
 
-import { PrismaClient } from '@/generated/client'
-import { Decimal } from '@prisma/client/runtime/library'
-import { getSecurePrismaClient } from '@/lib/prisma-rls'
-import { withSecureTransaction } from '@/lib/auth-context'
+import { getSecurePrismaClient } from "@/lib/prisma-rls";
+import { withSecureTransaction } from "@/lib/auth-context";
 import type {
   Credit,
   CreditWithDetails,
@@ -16,78 +14,78 @@ import type {
   CreditUpdateData,
   CreditSummary,
   CreditStatus,
-  BulkCreditStatusResult
-} from '@/types/credit'
+  BulkCreditStatusResult,
+} from "@/types/credit";
 
 /**
  * Credit Service Class
  */
 export class CreditService {
-  private merchantId: string
+  private merchantId: string;
 
   constructor(merchantId: string) {
-    this.merchantId = merchantId
+    this.merchantId = merchantId;
   }
 
   /**
    * Get secure client with RLS enabled
    */
   private async getSecureClient() {
-    const secureClient = getSecurePrismaClient()
+    const secureClient = getSecurePrismaClient();
     return await secureClient.withSession({
       merchantId: this.merchantId,
       userId: this.merchantId, // Since merchant IS the user
-      businessName: undefined // Optional
-    })
+      businessName: undefined, // Optional
+    });
   }
 
   /**
    * Calculate credit status based on remaining amount and due date
    */
-  private calculateCreditStatus(remainingAmount: Decimal, dueDate: Date | null): CreditStatus {
-    const remaining = Number(remainingAmount)
+  private calculateCreditStatus(remainingAmount: number, dueDate: Date | null): CreditStatus {
+    const remaining = Number(remainingAmount);
 
     if (remaining <= 0) {
-      return 'PAID'
+      return "PAID";
     }
 
     if (dueDate && new Date() > dueDate) {
-      return 'OVERDUE'
+      return "OVERDUE";
     }
 
-    return 'OPEN'
+    return "OPEN";
   }
 
   /**
    * Calculate days overdue for a credit
    */
   private calculateDaysOverdue(dueDate: Date | null): number | null {
-    if (!dueDate) return null
+    if (!dueDate) return null;
 
-    const today = new Date()
-    const due = new Date(dueDate)
+    const today = new Date();
+    const due = new Date(dueDate);
 
-    if (today <= due) return null
+    if (today <= due) return null;
 
-    const diffTime = today.getTime() - due.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    const diffTime = today.getTime() - due.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
   /**
    * Transform database credit to CreditWithDetails
    */
   private transformCreditWithDetails(creditData: any): CreditWithDetails {
-    const totalAmount = Number(creditData.totalAmount)
-    const remainingAmount = Number(creditData.remainingAmount)
-    const paidAmount = totalAmount - remainingAmount
-    const daysOverdue = this.calculateDaysOverdue(creditData.dueDate)
-    const isOverdue = daysOverdue !== null && daysOverdue > 0
+    const totalAmount = Number(creditData.totalAmount);
+    const remainingAmount = Number(creditData.remainingAmount);
+    const paidAmount = totalAmount - remainingAmount;
+    const daysOverdue = this.calculateDaysOverdue(creditData.dueDate);
+    const isOverdue = daysOverdue !== null && daysOverdue > 0;
 
     return {
       id: creditData.id,
       label: creditData.label,
-      totalAmount: totalAmount,           // Toujours en Number
-      remainingAmount: remainingAmount,   // Toujours en Number
+      totalAmount: totalAmount, // Toujours en Number
+      remainingAmount: remainingAmount, // Toujours en Number
       dueDate: creditData.dueDate,
       status: creditData.status,
       clientId: creditData.clientId,
@@ -98,47 +96,38 @@ export class CreditService {
         id: creditData.client.id,
         firstName: creditData.client.firstName,
         lastName: creditData.client.lastName,
-        fullName: `${creditData.client.firstName} ${creditData.client.lastName}`
+        fullName: `${creditData.client.firstName} ${creditData.client.lastName}`,
       },
-      allocations: creditData.paymentAllocations?.map((allocation: any) => ({
-        id: allocation.id,
-        amount: Number(allocation.amount),
-        paymentId: allocation.paymentId,
-        payment: {
-          id: allocation.payment.id,
-          amount: Number(allocation.payment.amount),
-          paymentDate: allocation.payment.paymentDate,
-          method: allocation.payment.method
-        }
-      })) || [],
+      allocations:
+        creditData.paymentAllocations?.map((allocation: any) => ({
+          id: allocation.id,
+          amount: Number(allocation.amount),
+          paymentId: allocation.paymentId,
+          payment: {
+            id: allocation.payment.id,
+            amount: Number(allocation.payment.amount),
+            paymentDate: allocation.payment.paymentDate,
+            method: allocation.payment.method,
+          },
+        })) || [],
       paidAmount,
       daysOverdue,
-      isOverdue
-    }
+      isOverdue,
+    };
   }
 
   /**
    * Get paginated list of credits with filters
    */
   async getCredits(filters: CreditFilters): Promise<CreditListResponse> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
-    const {
-      search,
-      status,
-      clientId,
-      dueAfter,
-      dueBefore,
-      sortBy,
-      sortOrder,
-      page,
-      limit
-    } = filters
+    const { search, status, clientId, dueAfter, dueBefore, sortBy, sortOrder, page, limit } = filters;
 
     // Build where clause
     const where: any = {
-      merchantId: this.merchantId
-    }
+      merchantId: this.merchantId,
+    };
 
     // Add search filter
     if (search.trim()) {
@@ -146,8 +135,8 @@ export class CreditService {
         {
           label: {
             contains: search.trim(),
-            mode: 'insensitive'
-          }
+            mode: "insensitive",
+          },
         },
         {
           client: {
@@ -155,50 +144,50 @@ export class CreditService {
               {
                 firstName: {
                   contains: search.trim(),
-                  mode: 'insensitive'
-                }
+                  mode: "insensitive",
+                },
               },
               {
                 lastName: {
                   contains: search.trim(),
-                  mode: 'insensitive'
-                }
-              }
-            ]
-          }
-        }
-      ]
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+        },
+      ];
     }
 
     // Add status filter
-    if (status !== 'ALL') {
-      where.status = status
+    if (status !== "ALL") {
+      where.status = status;
     }
 
     // Add client filter
     if (clientId) {
-      where.clientId = clientId
+      where.clientId = clientId;
     }
 
     // Add date filters
     if (dueAfter) {
-      where.dueDate = { ...where.dueDate, gte: dueAfter }
+      where.dueDate = { ...where.dueDate, gte: dueAfter };
     }
     if (dueBefore) {
-      where.dueDate = { ...where.dueDate, lte: dueBefore }
+      where.dueDate = { ...where.dueDate, lte: dueBefore };
     }
 
     // Calculate pagination
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
     // Build orderBy clause
-    const orderBy: any = {}
-    if (sortBy === 'client') {
+    const orderBy: any = {};
+    if (sortBy === "client") {
       orderBy.client = {
-        firstName: sortOrder
-      }
+        firstName: sortOrder,
+      };
     } else {
-      orderBy[sortBy] = sortOrder
+      orderBy[sortBy] = sortOrder;
     }
 
     // Fetch credits with related data
@@ -210,8 +199,8 @@ export class CreditService {
             select: {
               id: true,
               firstName: true,
-              lastName: true
-            }
+              lastName: true,
+            },
           },
           paymentAllocations: {
             include: {
@@ -220,54 +209,52 @@ export class CreditService {
                   id: true,
                   amount: true,
                   paymentDate: true,
-                  method: true
-                }
-              }
+                  method: true,
+                },
+              },
             },
             orderBy: {
-              createdAt: 'desc'
-            }
-          }
+              createdAt: "desc",
+            },
+          },
         },
         orderBy,
         skip,
-        take: limit
+        take: limit,
       }),
-      client.credit.count({ where })
-    ])
+      client.credit.count({ where }),
+    ]);
 
     // Transform credits to include computed fields
-    const creditsWithDetails = credits.map(creditData =>
-      this.transformCreditWithDetails(creditData)
-    )
+    const creditsWithDetails = credits.map((creditData) => this.transformCreditWithDetails(creditData));
 
     return {
       credits: creditsWithDetails,
       total,
       page,
       limit,
-      hasMore: skip + creditsWithDetails.length < total
-    }
+      hasMore: skip + creditsWithDetails.length < total,
+    };
   }
 
   /**
    * Get credit by ID with full details
    */
   async getCreditById(creditId: string): Promise<CreditWithDetails | null> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
     const creditData = await client.credit.findUnique({
       where: {
         id: creditId,
-        merchantId: this.merchantId
+        merchantId: this.merchantId,
       },
       include: {
         client: {
           select: {
             id: true,
             firstName: true,
-            lastName: true
-          }
+            lastName: true,
+          },
         },
         paymentAllocations: {
           include: {
@@ -276,30 +263,30 @@ export class CreditService {
                 id: true,
                 amount: true,
                 paymentDate: true,
-                method: true
-              }
-            }
+                method: true,
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
-        }
-      }
-    })
+            createdAt: "desc",
+          },
+        },
+      },
+    });
 
-    if (!creditData) return null
+    if (!creditData) return null;
 
-    return this.transformCreditWithDetails(creditData)
+    return this.transformCreditWithDetails(creditData);
   }
 
   /**
    * Create a new credit
    */
   async createCredit(data: CreditFormData): Promise<Credit> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
-    const totalAmountDecimal = new Decimal(data.totalAmount)
-    const initialStatus = this.calculateCreditStatus(totalAmountDecimal, data.dueDate || null)
+    const totalAmountDecimal = Number(data.totalAmount);
+    const initialStatus = this.calculateCreditStatus(totalAmountDecimal, data.dueDate || null);
 
     return await client.credit.create({
       data: {
@@ -309,129 +296,128 @@ export class CreditService {
         dueDate: data.dueDate || null,
         status: initialStatus,
         clientId: data.clientId,
-        merchantId: this.merchantId
-      }
-    })
+        merchantId: this.merchantId,
+      },
+    });
   }
 
   /**
    * Update an existing credit
    */
   async updateCredit(creditId: string, data: CreditUpdateData): Promise<Credit> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
     // Get current credit to calculate new remaining amount if total amount changes
     const currentCredit = await client.credit.findUnique({
-      where: { id: creditId, merchantId: this.merchantId }
-    })
+      where: { id: creditId, merchantId: this.merchantId },
+    });
 
     if (!currentCredit) {
-      throw new Error('Credit not found')
+      throw new Error("Credit not found");
     }
 
-    const updateData: any = {}
+    const updateData: any = {};
 
     if (data.label !== undefined) {
-      updateData.label = data.label
+      updateData.label = data.label;
     }
 
     if (data.totalAmount !== undefined) {
-      const newTotalAmount = new Decimal(data.totalAmount)
-      const currentPaidAmount = Number(currentCredit.totalAmount) - Number(currentCredit.remainingAmount)
-      const newRemainingAmount = Math.max(0, data.totalAmount - currentPaidAmount)
+      const newTotalAmount = Number(data.totalAmount);
+      const currentPaidAmount = Number(currentCredit.totalAmount) - Number(currentCredit.remainingAmount);
+      const newRemainingAmount = Math.max(0, data.totalAmount - currentPaidAmount);
 
-      updateData.totalAmount = newTotalAmount
-      updateData.remainingAmount = new Decimal(newRemainingAmount)
+      updateData.totalAmount = newTotalAmount;
+      updateData.remainingAmount = Number(newRemainingAmount);
     }
 
     if (data.dueDate !== undefined) {
-      updateData.dueDate = data.dueDate
+      updateData.dueDate = data.dueDate;
     }
 
     // Recalculate status if necessary
-    const remainingAmount = updateData.remainingAmount || currentCredit.remainingAmount
-    const dueDate = updateData.dueDate !== undefined ? updateData.dueDate : currentCredit.dueDate
-    updateData.status = data.status || this.calculateCreditStatus(remainingAmount, dueDate)
+    const remainingAmount = updateData.remainingAmount || currentCredit.remainingAmount;
+    const dueDate = updateData.dueDate !== undefined ? updateData.dueDate : currentCredit.dueDate;
+    updateData.status = data.status || this.calculateCreditStatus(remainingAmount, dueDate);
 
     return await client.credit.update({
       where: {
         id: creditId,
-        merchantId: this.merchantId
+        merchantId: this.merchantId,
       },
-      data: updateData
-    })
+      data: updateData,
+    });
   }
 
   /**
    * Delete a credit (only if no allocations exist)
    */
   async deleteCredit(creditId: string): Promise<void> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
     // Check if credit has any allocations
     const allocationsCount = await client.paymentAllocation.count({
       where: {
-        creditId: creditId
-      }
-    })
+        creditId: creditId,
+      },
+    });
 
     if (allocationsCount > 0) {
-      throw new Error('Cannot delete credit with existing payment allocations')
+      throw new Error("Cannot delete credit with existing payment allocations");
     }
 
     await client.credit.delete({
       where: {
         id: creditId,
-        merchantId: this.merchantId
-      }
-    })
+        merchantId: this.merchantId,
+      },
+    });
   }
 
   /**
    * Get credit summary statistics
    */
   async getCreditSummary(): Promise<CreditSummary> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
-    const [
-      statusCounts,
-      amountAggregates,
-      oldestCredit
-    ] = await Promise.all([
+    const [statusCounts, amountAggregates, oldestCredit] = await Promise.all([
       client.credit.groupBy({
-        by: ['status'],
+        by: ["status"],
         where: { merchantId: this.merchantId },
         _count: true,
         _sum: {
-          remainingAmount: true
-        }
+          remainingAmount: true,
+        },
       }),
       client.credit.aggregate({
         where: { merchantId: this.merchantId },
         _avg: { totalAmount: true },
-        _sum: { totalAmount: true }
+        _sum: { totalAmount: true },
       }),
       client.credit.findFirst({
         where: {
           merchantId: this.merchantId,
-          status: { in: ['OPEN', 'OVERDUE'] }
+          status: { in: ["OPEN", "OVERDUE"] },
         },
-        orderBy: { createdAt: 'asc' },
-        select: { createdAt: true }
-      })
-    ])
+        orderBy: { createdAt: "asc" },
+        select: { createdAt: true },
+      }),
+    ]);
 
-    const summary = statusCounts.reduce((acc, item) => {
-      acc[item.status] = {
-        count: item._count,
-        totalRemaining: Number(item._sum.remainingAmount || 0)
-      }
-      return acc
-    }, {} as Record<string, { count: number; totalRemaining: number }>)
+    const summary = statusCounts.reduce(
+      (acc, item) => {
+        acc[item.status] = {
+          count: item._count,
+          totalRemaining: Number(item._sum.remainingAmount || 0),
+        };
+        return acc;
+      },
+      {} as Record<string, { count: number; totalRemaining: number }>,
+    );
 
     const oldestCreditDays = oldestCredit
       ? Math.ceil((Date.now() - oldestCredit.createdAt.getTime()) / (1000 * 60 * 60 * 24))
-      : 0
+      : 0;
 
     return {
       totalCredits: Object.values(summary).reduce((sum, s) => sum + s.count, 0),
@@ -441,42 +427,42 @@ export class CreditService {
       totalAmountOpen: summary.OPEN?.totalRemaining || 0,
       totalAmountOverdue: summary.OVERDUE?.totalRemaining || 0,
       averageCreditAmount: Number(amountAggregates._avg.totalAmount) || 0,
-      oldestCreditDays
-    }
+      oldestCreditDays,
+    };
   }
 
   /**
    * Bulk update credit statuses (useful for scheduled jobs)
    */
   async bulkUpdateCreditStatuses(): Promise<BulkCreditStatusResult> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
     // Get all credits that might need status updates
     const credits = await client.credit.findMany({
       where: {
         merchantId: this.merchantId,
-        status: { in: ['OPEN', 'OVERDUE'] }
-      }
-    })
+        status: { in: ["OPEN", "OVERDUE"] },
+      },
+    });
 
-    const updates: any[] = []
-    const results: any[] = []
+    const updates: any[] = [];
+    const results: any[] = [];
 
     for (const credit of credits) {
-      const newStatus = this.calculateCreditStatus(credit.remainingAmount, credit.dueDate)
+      const newStatus = this.calculateCreditStatus(Number(credit.remainingAmount), credit.dueDate);
 
       if (newStatus !== credit.status) {
         updates.push({
           where: { id: credit.id },
-          data: { status: newStatus }
-        })
+          data: { status: newStatus },
+        });
 
         results.push({
           id: credit.id,
           newStatus,
           previousStatus: credit.status,
-          remainingAmount: credit.remainingAmount
-        })
+          remainingAmount: credit.remainingAmount,
+        });
       }
     }
 
@@ -484,16 +470,16 @@ export class CreditService {
     if (updates.length > 0) {
       await withSecureTransaction(async (tx) => {
         for (const update of updates) {
-          await tx.credit.update(update)
+          await tx.credit.update(update);
         }
-      })
+      });
     }
 
     return {
       updatedCredits: results,
       totalProcessed: credits.length,
-      totalUpdated: updates.length
-    }
+      totalUpdated: updates.length,
+    };
   }
 
   /**
@@ -501,39 +487,39 @@ export class CreditService {
    */
   async getClientCredits(clientId: string): Promise<CreditWithDetails[]> {
     const filters: CreditFilters = {
-      search: '',
-      status: 'ALL',
+      search: "",
+      status: "ALL",
       clientId: clientId,
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
+      sortBy: "createdAt",
+      sortOrder: "desc",
       page: 1,
-      limit: 1000 // Large limit to get all credits for a client
-    }
+      limit: 1000, // Large limit to get all credits for a client
+    };
 
-    const result = await this.getCredits(filters)
-    return result.credits
+    const result = await this.getCredits(filters);
+    return result.credits;
   }
 
   /**
    * Get open credits for a client (for FIFO allocation)
    */
   async getOpenCreditsForClient(clientId: string): Promise<CreditWithDetails[]> {
-    const client = await this.getSecureClient()
+    const client = await this.getSecureClient();
 
     const credits = await client.credit.findMany({
       where: {
         clientId: clientId,
         merchantId: this.merchantId,
-        status: 'OPEN',
-        remainingAmount: { gt: 0 }
+        status: "OPEN",
+        remainingAmount: { gt: 0 },
       },
       include: {
         client: {
           select: {
             id: true,
             firstName: true,
-            lastName: true
-          }
+            lastName: true,
+          },
         },
         paymentAllocations: {
           include: {
@@ -542,15 +528,15 @@ export class CreditService {
                 id: true,
                 amount: true,
                 paymentDate: true,
-                method: true
-              }
-            }
-          }
-        }
+                method: true,
+              },
+            },
+          },
+        },
       },
-      orderBy: { createdAt: 'asc' } // FIFO: oldest first
-    })
+      orderBy: { createdAt: "asc" }, // FIFO: oldest first
+    });
 
-    return credits.map(creditData => this.transformCreditWithDetails(creditData))
+    return credits.map((creditData) => this.transformCreditWithDetails(creditData));
   }
 }

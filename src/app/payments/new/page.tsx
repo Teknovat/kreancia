@@ -43,7 +43,7 @@ export default function NewPaymentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [clients, setClients] = useState<Client[]>([]);
-  const [isLoadingClients, setIsLoadingClients] = useState(true);
+  const [_isLoadingClients, setIsLoadingClients] = useState(true);
   const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
 

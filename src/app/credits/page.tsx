@@ -3,28 +3,17 @@
  * Real credit management interface with full functionality
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  CreditCard,
-  Plus,
-  Search,
-  Filter,
-  RefreshCw,
-  AlertTriangle,
-  Clock,
-  DollarSign,
-  Users,
-  Eye
-} from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { CreditCard, Plus, Search, RefreshCw, AlertTriangle, Clock, DollarSign, Eye } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
-import { useCredits } from '@/hooks/useCredits';
-import { useMerchantCurrency } from '@/hooks/useMerchantCurrency';
-import { formatDate } from '@/lib/utils';
-import type { CreditWithDetails } from '@/types/credit';
+import MainLayout from "@/components/layout/MainLayout";
+import { useCredits } from "@/hooks/useCredits";
+import { useMerchantCurrency } from "@/hooks/useMerchantCurrency";
+import { formatDate } from "@/lib/utils";
+import type { CreditWithDetails } from "@/types/credit";
 
 /**
  * Credit Table Component - Clean, scannable data presentation
@@ -44,7 +33,7 @@ function CreditTable({ credits, loading, formatAmount, onView }: CreditTableProp
           <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Liste des Crédits</h2>
         </div>
         <div className="space-y-4 p-6">
-          {[1, 2, 3, 4, 5].map(i => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex justify-between items-center py-4 border-b border-gray-100 last:border-b-0">
               <div className="space-y-2">
                 <div className="h-4 bg-gray-200 rounded w-48"></div>
@@ -67,11 +56,9 @@ function CreditTable({ credits, loading, formatAmount, onView }: CreditTableProp
         <div className="p-8 text-center">
           <CreditCard size={64} className="mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun crédit trouvé</h3>
-          <p className="text-gray-600 mb-6">
-            Commencez par créer votre premier crédit client.
-          </p>
+          <p className="text-gray-600 mb-6">Commencez par créer votre premier crédit client.</p>
           <button
-            onClick={() => window.location.href = '/credits/new'}
+            onClick={() => (window.location.href = "/credits/new")}
             className="px-6 py-3 bg-gray-900 text-white border-2 border-gray-900 hover:bg-white hover:text-gray-900 transition-all font-medium inline-flex items-center gap-2"
           >
             <Plus size={20} />
@@ -100,15 +87,16 @@ function CreditTable({ credits, loading, formatAmount, onView }: CreditTableProp
               <div className="flex-1">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-gray-900 text-white flex items-center justify-center font-bold text-sm">
-                    {credit.client.firstName.charAt(0)}{credit.client.lastName.charAt(0)}
+                    {credit.client.firstName.charAt(0)}
+                    {credit.client.lastName.charAt(0)}
                   </div>
 
                   <div className="space-y-1">
-                    <h4 className="font-bold text-gray-900">
-                      {credit.label}
-                    </h4>
+                    <h4 className="font-bold text-gray-900">{credit.label}</h4>
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>{credit.client.firstName} {credit.client.lastName}</span>
+                      <span>
+                        {credit.client.firstName} {credit.client.lastName}
+                      </span>
                       {credit.dueDate && <span>Échéance: {formatDate(credit.dueDate)}</span>}
                     </div>
                   </div>
@@ -119,27 +107,26 @@ function CreditTable({ credits, loading, formatAmount, onView }: CreditTableProp
               <div className="flex items-center space-x-8">
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total</p>
-                  <p className="font-bold text-lg text-gray-900">
-                    {formatAmount(credit.totalAmountNumber || 0)}
-                  </p>
+                  <p className="font-bold text-lg text-gray-900">{formatAmount(credit.totalAmount || 0)}</p>
                 </div>
 
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Restant</p>
-                  <p className="font-bold text-lg text-gray-900">
-                    {formatAmount(credit.remainingAmountNumber || 0)}
-                  </p>
+                  <p className="font-bold text-lg text-gray-900">{formatAmount(credit.remainingAmount || 0)}</p>
                 </div>
 
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Statut</p>
-                  <span className={`inline-block px-2 py-1 text-xs font-bold uppercase tracking-wide ${
-                    credit.status === 'OPEN' ? 'bg-blue-100 text-blue-800' :
-                    credit.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {credit.status === 'OPEN' ? 'Ouvert' :
-                     credit.status === 'PAID' ? 'Payé' : 'En retard'}
+                  <span
+                    className={`inline-block px-2 py-1 text-xs font-bold uppercase tracking-wide ${
+                      credit.status === "OPEN"
+                        ? "bg-blue-100 text-blue-800"
+                        : credit.status === "PAID"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {credit.status === "OPEN" ? "Ouvert" : credit.status === "PAID" ? "Payé" : "En retard"}
                   </span>
                 </div>
 
@@ -169,20 +156,20 @@ export default function CreditsPage() {
   const router = useRouter();
   const {
     credits,
-    totalCount,
+    totalCount: _totalCount,
     stats,
     loading,
     error,
     refetch,
-    filters,
-    setFilters
+    filters: _filters,
+    setFilters,
   } = useCredits();
 
   const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleNewCredit = () => {
-    router.push('/credits/new');
+    router.push("/credits/new");
   };
 
   const handleViewCredit = (credit: CreditWithDetails) => {
@@ -196,7 +183,7 @@ export default function CreditsPage() {
   // Update search filter
   const handleSearch = (value: string) => {
     setSearchQuery(value);
-    setFilters(prev => ({ ...prev, search: value, page: 1 }));
+    setFilters((prev) => ({ ...prev, search: value, page: 1 }));
   };
 
   return (
@@ -207,12 +194,8 @@ export default function CreditsPage() {
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                  Crédits
-                </h1>
-                <p className="text-lg text-gray-600 mt-2">
-                  Gestion des crédits client
-                </p>
+                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">Crédits</h1>
+                <p className="text-lg text-gray-600 mt-2">Gestion des crédits client</p>
               </div>
 
               <div className="flex gap-4">
@@ -221,7 +204,7 @@ export default function CreditsPage() {
                   disabled={loading}
                   className="p-3 border-2 border-gray-900 hover:bg-gray-900 hover:text-white transition-all disabled:opacity-50"
                 >
-                  <RefreshCw size={24} className={loading ? 'animate-spin' : ''} />
+                  <RefreshCw size={24} className={loading ? "animate-spin" : ""} />
                 </button>
                 <button
                   onClick={handleNewCredit}
@@ -253,9 +236,7 @@ export default function CreditsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Crédits</p>
-                    <p className="text-2xl font-black text-gray-900">
-                      {loading ? '...' : stats.totalCredits}
-                    </p>
+                    <p className="text-2xl font-black text-gray-900">{loading ? "..." : stats.totalCredits}</p>
                   </div>
                   <CreditCard size={32} className="text-gray-400" />
                 </div>
@@ -265,9 +246,7 @@ export default function CreditsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-blue-600 uppercase tracking-wide">Ouverts</p>
-                    <p className="text-2xl font-black text-blue-900">
-                      {loading ? '...' : stats.openCredits}
-                    </p>
+                    <p className="text-2xl font-black text-blue-900">{loading ? "..." : stats.openCredits}</p>
                   </div>
                   <Clock size={32} className="text-blue-400" />
                 </div>
@@ -278,7 +257,7 @@ export default function CreditsPage() {
                   <div>
                     <p className="text-sm font-medium text-green-600 uppercase tracking-wide">Montant Total</p>
                     <p className="text-2xl font-black text-green-900">
-                      {loading || currencyLoading ? '...' : formatAmount(stats.totalOutstanding)}
+                      {loading || currencyLoading ? "..." : formatAmount(stats.totalOutstanding)}
                     </p>
                   </div>
                   <DollarSign size={32} className="text-green-400" />
@@ -289,9 +268,7 @@ export default function CreditsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-red-600 uppercase tracking-wide">En retard</p>
-                    <p className="text-2xl font-black text-red-900">
-                      {loading ? '...' : stats.overdueCredits}
-                    </p>
+                    <p className="text-2xl font-black text-red-900">{loading ? "..." : stats.overdueCredits}</p>
                   </div>
                   <AlertTriangle size={32} className="text-red-400" />
                 </div>
@@ -316,12 +293,7 @@ export default function CreditsPage() {
           )}
 
           {/* Credits Table */}
-          <CreditTable
-            credits={credits}
-            loading={loading}
-            formatAmount={formatAmount}
-            onView={handleViewCredit}
-          />
+          <CreditTable credits={credits} loading={loading} formatAmount={formatAmount} onView={handleViewCredit} />
         </div>
       </div>
     </MainLayout>

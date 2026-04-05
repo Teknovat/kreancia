@@ -97,15 +97,15 @@ export function useDashboard(): UseDashboardResult {
       const paidCredits = credits.filter((c: any) => c.status === "PAID").length;
       const overdueCredits = credits.filter((c: any) => c.status === "OVERDUE").length;
 
-      const totalCreditsAmount = credits.reduce((sum: number, c: any) => sum + c.totalAmountNumber, 0);
-      const totalOutstandingAmount = credits.reduce((sum: number, c: any) => sum + c.remainingAmountNumber, 0);
+      const totalCreditsAmount = credits.reduce((sum: number, c: any) => sum + c.totalAmount, 0);
+      const totalOutstandingAmount = credits.reduce((sum: number, c: any) => sum + c.remainingAmount, 0);
       const totalOverdueAmount = credits
         .filter((c: any) => c.status === "OVERDUE")
-        .reduce((sum: number, c: any) => sum + c.remainingAmountNumber, 0);
+        .reduce((sum: number, c: any) => sum + c.remainingAmount, 0);
 
       // Payment stats
       const totalPayments = payments.length;
-      const totalPaymentsAmount = payments.reduce((sum: number, p: any) => sum + p.amountNumber, 0);
+      const totalPaymentsAmount = payments.reduce((sum: number, p: any) => sum + p.amount, 0);
       const totalAllocatedAmount = payments.reduce((sum: number, p: any) => sum + p.totalAllocated, 0);
       const totalUnallocatedAmount = payments.reduce((sum: number, p: any) => sum + p.unallocatedAmount, 0);
 
@@ -118,7 +118,7 @@ export function useDashboard(): UseDashboardResult {
 
       const amountThisMonth = payments
         .filter((p: any) => new Date(p.paymentDate) >= thisMonth)
-        .reduce((sum: number, p: any) => sum + p.amountNumber, 0);
+        .reduce((sum: number, p: any) => sum + p.amount, 0);
 
       // Calculate simple trends (mock for now - would need historical data)
       const clientsTrend = 5.2; // % change
@@ -159,7 +159,7 @@ export function useDashboard(): UseDashboardResult {
           id: `credit-${credit.id}`,
           type: "CREDIT_CREATED",
           description: `Crédit "${credit.label}" créé`,
-          amount: credit.totalAmountNumber,
+          amount: credit.totalAmount,
           date: new Date(credit.createdAt),
           clientName: credit.client.fullName,
           relatedId: credit.id,
@@ -172,7 +172,7 @@ export function useDashboard(): UseDashboardResult {
           id: `payment-${payment.id}`,
           type: "PAYMENT_RECEIVED",
           description: `Paiement reçu (${payment.method})`,
-          amount: payment.amountNumber,
+          amount: payment.amount,
           date: new Date(payment.paymentDate),
           clientName: payment.client.fullName,
           relatedId: payment.id,

@@ -7,6 +7,7 @@
 
 import type { Prisma } from "@/generated/client";
 import { getSecureDatabase, withSecureTransaction } from "@/lib/auth-context";
+import { formatCurrency as unifiedFormatCurrency } from "@/lib/utils";
 
 // Re-export types for convenience
 export type {
@@ -514,7 +515,6 @@ export const DataUtils = {
    */
   formatCurrency(amount: number | string, currency = "TND"): string {
     // This method is deprecated - use the unified function from utils.ts
-    const { formatCurrency: unifiedFormatCurrency } = require("@/lib/utils");
     return unifiedFormatCurrency(amount, currency);
   },
 

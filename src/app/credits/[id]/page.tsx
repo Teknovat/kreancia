@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, User, DollarSign, Calendar, FileText, Edit, AlertTriangle, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, DollarSign, Calendar, FileText, Edit, AlertTriangle } from "lucide-react";
 
 import MainLayout from "@/components/layout/MainLayout";
 
@@ -57,7 +57,7 @@ export default function CreditDetailPage() {
         } else {
           setError("Crédit non trouvé");
         }
-      } catch (err) {
+      } catch {
         setError("Erreur lors du chargement");
       } finally {
         setIsLoading(false);
@@ -186,11 +186,11 @@ export default function CreditDetailPage() {
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Montant total:</span>
-                  <span className="font-bold text-gray-900">{credit.totalAmount.toFixed(2)} TND</span>
+                  <span className="font-bold text-gray-900">{credit.totalAmount.toFixed(3)} TND</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Montant restant:</span>
-                  <span className="font-bold text-gray-900">{credit.remainingAmount.toFixed(2)} TND</span>
+                  <span className="font-bold text-gray-900">{credit.remainingAmount.toFixed(3)} TND</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Date de création:</span>
@@ -198,7 +198,7 @@ export default function CreditDetailPage() {
                 </div>
                 {credit.dueDate && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Date d'échéance:</span>
+                    <span className="text-gray-600">Date d&apos;échéance:</span>
                     <span className="text-gray-900 flex items-center gap-1">
                       <Calendar size={16} />
                       {new Date(credit.dueDate).toLocaleDateString("fr-FR")}
@@ -248,17 +248,17 @@ export default function CreditDetailPage() {
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div className="border-2 border-gray-200 p-3">
                     <p className="text-sm text-gray-600 uppercase tracking-wide">Total</p>
-                    <p className="font-bold text-gray-900">{credit.totalAmount.toFixed(2)} TND</p>
+                    <p className="font-bold text-gray-900">{credit.totalAmount.toFixed(3)} TND</p>
                   </div>
                   <div className="border-2 border-gray-200 p-3">
                     <p className="text-sm text-gray-600 uppercase tracking-wide">Payé</p>
                     <p className="font-bold text-green-600">
-                      {(credit.totalAmount - credit.remainingAmount).toFixed(2)} TND
+                      {(credit.totalAmount - credit.remainingAmount).toFixed(3)} TND
                     </p>
                   </div>
                   <div className="border-2 border-gray-200 p-3">
                     <p className="text-sm text-gray-600 uppercase tracking-wide">Restant</p>
-                    <p className="font-bold text-red-600">{credit.remainingAmount.toFixed(2)} TND</p>
+                    <p className="font-bold text-red-600">{credit.remainingAmount.toFixed(3)} TND</p>
                   </div>
                 </div>
               </div>
@@ -278,7 +278,10 @@ export default function CreditDetailPage() {
                 <div className="p-6">
                   <div className="space-y-4">
                     {credit.allocations.map((allocation) => (
-                      <div key={allocation.id} className="border-2 border-gray-200 p-4 hover:bg-gray-50 transition-colors">
+                      <div
+                        key={allocation.id}
+                        className="border-2 border-gray-200 p-4 hover:bg-gray-50 transition-colors"
+                      >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
@@ -292,15 +295,15 @@ export default function CreditDetailPage() {
                             <div className="text-sm text-gray-600 space-y-1">
                               <div className="flex justify-between">
                                 <span>Montant total du paiement:</span>
-                                <span className="font-medium">{allocation.payment.amount.toFixed(2)} TND</span>
+                                <span className="font-medium">{allocation.payment.amount.toFixed(3)} TND</span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Alloué à ce crédit:</span>
-                                <span className="font-medium text-green-600">{allocation.amount.toFixed(2)} TND</span>
+                                <span className="font-medium text-green-600">{allocation.amount.toFixed(3)} TND</span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Date:</span>
-                                <span>{new Date(allocation.payment.paymentDate).toLocaleDateString('fr-FR')}</span>
+                                <span>{new Date(allocation.payment.paymentDate).toLocaleDateString("fr-FR")}</span>
                               </div>
                               {allocation.payment.reference && (
                                 <div className="flex justify-between">
@@ -321,7 +324,8 @@ export default function CreditDetailPage() {
                     ))}
                   </div>
                   <div className="mt-4 text-sm text-gray-500 text-center">
-                    {credit.allocations.length} paiement{credit.allocations.length > 1 ? 's' : ''} appliqué{credit.allocations.length > 1 ? 's' : ''} à ce crédit
+                    {credit.allocations.length} paiement{credit.allocations.length > 1 ? "s" : ""} appliqué
+                    {credit.allocations.length > 1 ? "s" : ""} à ce crédit
                   </div>
                 </div>
               </div>

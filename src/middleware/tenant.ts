@@ -53,7 +53,7 @@ function shouldApplyTenantMiddleware(pathname: string): boolean {
 /**
  * Extract session context from the request
  */
-async function getSessionContext(request: NextRequest): Promise<SessionContext | null> {
+async function getSessionContext(_request: NextRequest): Promise<SessionContext | null> {
   try {
     // Get session using NextAuth
     const session = await auth()

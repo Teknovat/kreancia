@@ -3,9 +3,9 @@
  * Main dashboard view with real API integration
  */
 
-'use client'
+"use client";
 
-import { useSession } from 'next-auth/react'
+import { useSession } from "next-auth/react";
 import {
   TrendingUp,
   Users,
@@ -17,15 +17,13 @@ import {
   CheckCircle,
   AlertTriangle,
   Loader2,
-  RefreshCw
-} from 'lucide-react'
+  RefreshCw,
+} from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout'
-import { useDashboard } from '@/hooks/useDashboard'
-import { useMerchantCurrency } from '@/hooks/useMerchantCurrency'
-
-  const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency()
-import { formatCurrency, formatDate } from '@/lib/utils'
+import MainLayout from "@/components/layout/MainLayout";
+import { useDashboard } from "@/hooks/useDashboard";
+import { useMerchantCurrency } from "@/hooks/useMerchantCurrency";
+import { formatDate } from "@/lib/utils";
 
 /**
  * Stat Card Component
@@ -36,28 +34,28 @@ function StatCard({
   change,
   trend,
   icon: Icon,
-  color = 'blue',
-  loading = false
+  color = "blue",
+  loading = false,
 }: {
-  title: string
-  value: string
-  change: string
-  trend: 'up' | 'down'
-  icon: React.ElementType
-  color?: 'blue' | 'green' | 'amber' | 'red'
-  loading?: boolean
+  title: string;
+  value: string;
+  change: string;
+  trend: "up" | "down";
+  icon: React.ElementType;
+  color?: "blue" | "green" | "amber" | "red";
+  loading?: boolean;
 }) {
   const colors = {
-    blue: 'bg-blue-500 text-blue-100',
-    green: 'bg-green-500 text-green-100',
-    amber: 'bg-amber-500 text-amber-100',
-    red: 'bg-red-500 text-red-100'
-  }
+    blue: "bg-blue-500 text-blue-100",
+    green: "bg-green-500 text-green-100",
+    amber: "bg-amber-500 text-amber-100",
+    red: "bg-red-500 text-red-100",
+  };
 
   const trendColors = {
-    up: 'text-green-600',
-    down: 'text-red-600'
-  }
+    up: "text-green-600",
+    down: "text-red-600",
+  };
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
@@ -73,11 +71,7 @@ function StatCard({
             <>
               <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
               <div className={`flex items-center gap-1 mt-2 ${trendColors[trend]}`}>
-                {trend === 'up' ? (
-                  <ArrowUpRight size={16} />
-                ) : (
-                  <ArrowDownRight size={16} />
-                )}
+                {trend === "up" ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                 <span className="text-sm font-medium">{change}</span>
               </div>
             </>
@@ -88,16 +82,15 @@ function StatCard({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Recent Activity Component
  */
-function RecentActivityCard({ activities, loading }: {
-  activities: any[]
-  loading: boolean
-}) {
+function RecentActivityCard({ activities, loading }: { activities: any[]; loading: boolean }) {
+  const { formatAmount } = useMerchantCurrency();
+
   if (loading) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
@@ -114,7 +107,7 @@ function RecentActivityCard({ activities, loading }: {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -124,33 +117,31 @@ function RecentActivityCard({ activities, loading }: {
         {activities.length > 0 ? (
           activities.map((activity) => (
             <div key={activity.id} className="flex items-start gap-3">
-              <div className={`p-2 rounded-full ${
-                activity.type === 'CREDIT_CREATED'
-                  ? 'bg-blue-100 text-blue-600'
-                  : activity.type === 'PAYMENT_RECEIVED'
-                  ? 'bg-green-100 text-green-600'
-                  : 'bg-red-100 text-red-600'
-              }`}>
-                {activity.type === 'CREDIT_CREATED' ? (
+              <div
+                className={`p-2 rounded-full ${
+                  activity.type === "CREDIT_CREATED"
+                    ? "bg-blue-100 text-blue-600"
+                    : activity.type === "PAYMENT_RECEIVED"
+                      ? "bg-green-100 text-green-600"
+                      : "bg-red-100 text-red-600"
+                }`}
+              >
+                {activity.type === "CREDIT_CREATED" ? (
                   <CreditCard size={16} />
-                ) : activity.type === 'PAYMENT_RECEIVED' ? (
+                ) : activity.type === "PAYMENT_RECEIVED" ? (
                   <CheckCircle size={16} />
                 ) : (
                   <AlertTriangle size={16} />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900">
-                  {activity.description}
-                </p>
+                <p className="text-sm font-medium text-slate-900">{activity.description}</p>
                 <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                   <span>{activity.clientName}</span>
                   {activity.amount && (
                     <>
                       <span>•</span>
-                      <span className="font-medium">
-                        {formatAmount(activity.amount)}
-                      </span>
+                      <span className="font-medium">{formatAmount(activity.amount)}</span>
                     </>
                   )}
                   <span>•</span>
@@ -160,13 +151,11 @@ function RecentActivityCard({ activities, loading }: {
             </div>
           ))
         ) : (
-          <p className="text-center text-slate-500 py-4">
-            Aucune activité récente
-          </p>
+          <p className="text-center text-slate-500 py-4">Aucune activité récente</p>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -199,16 +188,13 @@ function QuickActionsCard() {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Credit Status Overview Component
  */
-function CreditStatusOverview({ stats, loading }: {
-  stats: any
-  loading: boolean
-}) {
+function CreditStatusOverview({ stats, loading, formatAmount }: { stats: any; loading: boolean; formatAmount: any }) {
   if (loading || !stats) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
@@ -225,37 +211,37 @@ function CreditStatusOverview({ stats, loading }: {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
-  const totalCredits = stats.openCredits + stats.paidCredits + stats.overdueCredits
+  const totalCredits = stats.openCredits + stats.paidCredits + stats.overdueCredits;
 
   const statusData = [
     {
-      label: 'Payés',
+      label: "Payés",
       value: stats.paidCredits,
       percentage: totalCredits > 0 ? Math.round((stats.paidCredits / totalCredits) * 100) : 0,
-      color: 'bg-green-500',
+      color: "bg-green-500",
       icon: CheckCircle,
-      iconColor: 'text-green-600'
+      iconColor: "text-green-600",
     },
     {
-      label: 'En cours',
+      label: "En cours",
       value: stats.openCredits,
       percentage: totalCredits > 0 ? Math.round((stats.openCredits / totalCredits) * 100) : 0,
-      color: 'bg-blue-500',
+      color: "bg-blue-500",
       icon: Clock,
-      iconColor: 'text-blue-600'
+      iconColor: "text-blue-600",
     },
     {
-      label: 'En retard',
+      label: "En retard",
       value: stats.overdueCredits,
       percentage: totalCredits > 0 ? Math.round((stats.overdueCredits / totalCredits) * 100) : 0,
-      color: 'bg-red-500',
+      color: "bg-red-500",
       icon: AlertTriangle,
-      iconColor: 'text-red-600'
-    }
-  ]
+      iconColor: "text-red-600",
+    },
+  ];
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
@@ -264,7 +250,9 @@ function CreditStatusOverview({ stats, loading }: {
         {statusData.map((item) => (
           <div key={item.label} className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`p-1.5 rounded ${item.iconColor === 'text-green-600' ? 'bg-green-100' : item.iconColor === 'text-blue-600' ? 'bg-blue-100' : 'bg-red-100'}`}>
+              <div
+                className={`p-1.5 rounded ${item.iconColor === "text-green-600" ? "bg-green-100" : item.iconColor === "text-blue-600" ? "bg-blue-100" : "bg-red-100"}`}
+              >
                 <item.icon size={16} className={item.iconColor} />
               </div>
               <span className="text-sm font-medium text-slate-700">{item.label}</span>
@@ -281,31 +269,28 @@ function CreditStatusOverview({ stats, loading }: {
       <div className="mt-6 pt-4 border-t border-slate-200">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-slate-600">Montant en attente</span>
-          <span className="text-lg font-bold text-blue-600">
-            {formatAmount(stats.totalOutstandingAmount)}
-          </span>
+          <span className="text-lg font-bold text-blue-600">{formatAmount(stats.totalOutstandingAmount)}</span>
         </div>
         {stats.totalOverdueAmount > 0 && (
           <div className="flex items-center justify-between mt-2">
             <span className="text-sm font-medium text-slate-600">Montant en retard</span>
-            <span className="text-lg font-bold text-red-600">
-              {formatAmount(stats.totalOverdueAmount)}
-            </span>
+            <span className="text-lg font-bold text-red-600">{formatAmount(stats.totalOverdueAmount)}</span>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
  * Main Dashboard Component with Real Data
  */
 export default function DashboardReal() {
-  const { data: session, status } = useSession()
-  const { stats, recentActivity, loading, error, refetch } = useDashboard()
+  const { data: session, status } = useSession();
+  const { stats, recentActivity, loading, error, refetch } = useDashboard();
+  const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency();
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-96">
@@ -315,17 +300,17 @@ export default function DashboardReal() {
           </div>
         </div>
       </MainLayout>
-    )
+    );
   }
 
-  if (status === 'unauthenticated') {
+  if (status === "unauthenticated") {
     return (
       <MainLayout>
         <div className="text-center py-12">
           <p className="text-slate-600">Vous devez être connecté pour accéder au tableau de bord.</p>
         </div>
       </MainLayout>
-    )
+    );
   }
 
   return (
@@ -334,12 +319,8 @@ export default function DashboardReal() {
         {/* Welcome Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              Tableau de Bord
-            </h1>
-            <p className="text-slate-600 mt-1">
-              Bienvenue {session?.user?.name}, voici un aperçu de votre activité.
-            </p>
+            <h1 className="text-3xl font-bold text-slate-900">Tableau de Bord</h1>
+            <p className="text-slate-600 mt-1">Bienvenue {session?.user?.name}, voici un aperçu de votre activité.</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -348,7 +329,7 @@ export default function DashboardReal() {
               disabled={loading}
               className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
             >
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
               Actualiser
             </button>
           </div>
@@ -420,7 +401,7 @@ export default function DashboardReal() {
 
           {/* Credit Status Overview */}
           <div>
-            <CreditStatusOverview stats={stats} loading={loading} />
+            <CreditStatusOverview stats={stats} loading={loading} formatAmount={formatAmount} />
           </div>
         </div>
 
@@ -435,9 +416,7 @@ export default function DashboardReal() {
           <div className="lg:col-span-2">
             {/* Placeholder for charts or other components */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                Tendances des Paiements
-              </h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">Tendances des Paiements</h3>
               <div className="text-center py-12 text-slate-500">
                 <TrendingUp size={48} className="mx-auto mb-3" />
                 <p>Graphiques à venir</p>
@@ -447,5 +426,5 @@ export default function DashboardReal() {
         </div>
       </div>
     </MainLayout>
-  )
+  );
 }

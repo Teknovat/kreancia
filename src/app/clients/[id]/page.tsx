@@ -59,6 +59,12 @@ export default async function ClientProfilePage({
     // Transform to ClientWithStats format
     const clientWithStats: ClientWithStats = {
       ...client,
+      email: client.email ?? undefined, // Convert null to undefined
+      phone: client.phone ?? undefined, // Convert null to undefined
+      address: client.address ?? undefined, // Convert null to undefined
+      businessName: client.businessName ?? undefined, // Convert null to undefined
+      taxId: client.taxId ?? undefined, // Convert null to undefined
+      creditLimit: client.creditLimit ? Number(client.creditLimit) : undefined, // Convert Decimal to number
       fullName: `${client.firstName} ${client.lastName}`,
       totalCredits: client.credits.length,
       outstandingAmount: client.credits.reduce((sum, credit) => sum + Number(credit.remainingAmount || 0), 0),
@@ -121,7 +127,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: `${fullName} | Profil Client | Kreancia`,
       description: `Profil détaillé de ${fullName} - Gestion des crédits, paiements et activité client.`
     }
-  } catch (error) {
+  } catch {
     return {
       title: 'Erreur | Kreancia',
       description: 'Une erreur s\'est produite lors du chargement du profil client.'

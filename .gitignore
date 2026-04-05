@@ -39,3 +39,6 @@ npm-debug.log*
 /docker/postgres/data/
 
 .playwright-mcp
+
+# build
+tsconfig.tsbuildinfo

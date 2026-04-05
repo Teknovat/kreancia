@@ -50,7 +50,7 @@ export default function ClientProfileContent({
     // Store user preference in localStorage
     try {
       localStorage.setItem('client-profile-last-tab', tab)
-    } catch (error) {
+    } catch {
       // Ignore localStorage errors (e.g., in private mode)
     }
   }
@@ -70,7 +70,7 @@ export default function ClientProfileContent({
       if (savedTab && isValidTab(savedTab) && !searchParams.get('tab')) {
         setActiveTab(savedTab as ClientProfileTab)
       }
-    } catch (error) {
+    } catch {
       // Ignore localStorage errors
     }
   }, [searchParams])

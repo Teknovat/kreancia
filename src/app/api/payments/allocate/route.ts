@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedSessionOrRedirect } from "@/lib/auth-context";
-import { PaymentService } from "@/lib/payment-service";
 import { CreditService } from "@/lib/credit-service";
 import { z } from "zod";
 
@@ -46,9 +45,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { clientId, paymentAmount, manualAllocations } = validateAllocationSchema.parse(body);
-
-    // Create payment service instance
-    const paymentService = new PaymentService(session.merchantId);
 
     // Validate the allocation using the private method
     // We'll need to expose this through a public method
@@ -91,9 +87,9 @@ export async function POST(request: NextRequest) {
         errors.push(`Allocation amount must be positive for credit ${credit.label}`);
       }
 
-      if (allocation.amount > credit.remainingAmountNumber) {
+      if (allocation.amount > credit.remainingAmount) {
         errors.push(
-          `Allocation amount (${allocation.amount}) exceeds remaining amount (${credit.remainingAmountNumber}) for credit ${credit.label}`,
+          `Allocation amount (${allocation.amount}) exceeds remaining amount (${credit.remainingAmount}) for credit ${credit.label}`,
         );
       }
     }
@@ -101,7 +97,7 @@ export async function POST(request: NextRequest) {
     // Warn about unallocated amount
     if (totalAllocationAmount < paymentAmount) {
       const unallocated = paymentAmount - totalAllocationAmount;
-      warnings.push(`${unallocated.toFixed(2)} will remain unallocated`);
+      warnings.push(`${unallocated.toFixed(3)} will remain unallocated`);
     }
 
     const validation = {
@@ -112,8 +108,8 @@ export async function POST(request: NextRequest) {
       availableCredits: availableCredits.map((credit) => ({
         id: credit.id,
         label: credit.label,
-        remainingAmount: credit.remainingAmountNumber,
-        maxAllowedAllocation: credit.remainingAmountNumber,
+        remainingAmount: credit.remainingAmount,
+        maxAllowedAllocation: credit.remainingAmount,
       })),
     };
 
@@ -175,8 +171,8 @@ export async function GET(request: NextRequest) {
     const availableCredits = credits.map((credit) => ({
       id: credit.id,
       label: credit.label,
-      totalAmount: credit.totalAmountNumber,
-      remainingAmount: credit.remainingAmountNumber,
+      totalAmount: credit.totalAmount,
+      remainingAmount: credit.remainingAmount,
       dueDate: credit.dueDate,
       daysOverdue: credit.daysOverdue,
       isOverdue: credit.isOverdue,

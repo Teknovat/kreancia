@@ -24,7 +24,7 @@ export default function ClientNotFound() {
 
           {/* Description */}
           <p className="text-slate-600 mb-8 leading-relaxed">
-            Le client que vous recherchez n'existe pas ou vous n'avez pas les autorisations pour y accéder.
+            Le client que vous recherchez n&apos;existe pas ou vous n&apos;avez pas les autorisations pour y accéder.
           </p>
 
           {/* Actions */}
@@ -48,7 +48,7 @@ export default function ClientNotFound() {
 
           {/* Additional help */}
           <p className="text-sm text-slate-500 mt-6">
-            Si vous pensez qu'il s'agit d'une erreur, veuillez vérifier l'URL ou contacter le support.
+            Si vous pensez qu&apos;il s&apos;agit d&apos;une erreur, veuillez vérifier l&apos;URL ou contacter le support.
           </p>
         </div>
       </div>

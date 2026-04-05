@@ -43,4 +43,4 @@ CREATE POLICY "payment_allocations_isolation" ON "payment_allocations"
   USING ("merchantId" = current_merchant_id());
 
 -- Grant necessary permissions for the function
-GRANT EXECUTE ON FUNCTION current_merchant_id() TO postgres, public;
+GRANT EXECUTE ON FUNCTION current_merchant_id() TO public;

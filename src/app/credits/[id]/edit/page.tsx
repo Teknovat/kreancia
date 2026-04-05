@@ -268,7 +268,7 @@ export default function EditCreditPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
                   <Calendar size={16} className="inline mr-2" />
-                  Date d'échéance
+                  Date d&apos;échéance
                 </label>
                 <input
                   type="date"
@@ -300,7 +300,7 @@ export default function EditCreditPage() {
                   <div>
                     <p className="font-medium text-orange-800">Attention</p>
                     <p className="text-sm text-orange-700 mt-1">
-                      Modifier le montant d'un crédit peut affecter les allocations de paiements existantes.
+                      Modifier le montant d&apos;un crédit peut affecter les allocations de paiements existantes.
                       Assurez-vous de vérifier les paiements associés après la modification.
                     </p>
                   </div>

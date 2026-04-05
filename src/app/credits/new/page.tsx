@@ -33,7 +33,7 @@ export default function NewCreditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [clients, setClients] = useState<Client[]>([]);
-  const [isLoadingClients, setIsLoadingClients] = useState(true);
+  const [_isLoadingClients, setIsLoadingClients] = useState(true);
   const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
 
@@ -278,7 +278,7 @@ export default function NewCreditPage() {
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
                   <Calendar size={16} className="inline mr-2" />
-                  Date d'échéance
+                  Date d&apos;échéance
                 </label>
                 <input
                   type="date"

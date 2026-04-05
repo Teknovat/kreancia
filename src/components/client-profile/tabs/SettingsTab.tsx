@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
 /**
  * Settings Tab
  * Client profile settings with editable information, credit limits, and account management
  */
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   User,
   Phone,
@@ -24,12 +24,12 @@ import {
   Unlock,
   History,
   FileText,
-  Settings as SettingsIcon
-} from 'lucide-react'
+  Settings as _SettingsIcon,
+} from "lucide-react";
 
-import { TabContentContainer, TabSectionHeader } from '../ClientProfileTabs'
-import type { SettingsTabProps } from '@/types/client-profile'
-import { cn } from '@/lib/utils'
+import { TabContentContainer, TabSectionHeader } from "../ClientProfileTabs";
+import type { SettingsTabProps } from "@/types/client-profile";
+import { cn } from "@/lib/utils";
 
 /**
  * Editable Field Component
@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils'
 function EditableField({
   label,
   value,
-  type = 'text',
+  type = "text",
   icon: Icon,
   isEditing,
   onChange,
@@ -45,19 +45,19 @@ function EditableField({
   onCancel,
   onEdit,
   placeholder,
-  required = false
+  required = false,
 }: {
-  label: string
-  value: string | number
-  type?: 'text' | 'email' | 'tel' | 'number'
-  icon: React.ComponentType<{ size?: number; className?: string }>
-  isEditing: boolean
-  onChange: (value: string) => void
-  onSave: () => void
-  onCancel: () => void
-  onEdit: () => void
-  placeholder?: string
-  required?: boolean
+  label: string;
+  value: string | number;
+  type?: "text" | "email" | "tel" | "number";
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  isEditing: boolean;
+  onChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onEdit: () => void;
+  placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between py-3 px-4 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
@@ -113,7 +113,7 @@ function EditableField({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 /**
@@ -124,34 +124,34 @@ function StatusToggle({
   description,
   isEnabled,
   onChange,
-  variant = 'default'
+  variant = "default",
 }: {
-  label: string
-  description: string
-  isEnabled: boolean
-  onChange: (enabled: boolean) => void
-  variant?: 'default' | 'danger'
+  label: string;
+  description: string;
+  isEnabled: boolean;
+  onChange: (enabled: boolean) => void;
+  variant?: "default" | "danger";
 }) {
-  const Icon = isEnabled ? Unlock : Lock
+  const Icon = isEnabled ? Unlock : Lock;
   const colors = {
     default: {
-      bg: isEnabled ? 'bg-green-100' : 'bg-slate-100',
-      icon: isEnabled ? 'text-green-600' : 'text-slate-600',
-      toggle: isEnabled ? 'bg-green-500' : 'bg-slate-300'
+      bg: isEnabled ? "bg-green-100" : "bg-slate-100",
+      icon: isEnabled ? "text-green-600" : "text-slate-600",
+      toggle: isEnabled ? "bg-green-500" : "bg-slate-300",
     },
     danger: {
-      bg: isEnabled ? 'bg-red-100' : 'bg-slate-100',
-      icon: isEnabled ? 'text-red-600' : 'text-slate-600',
-      toggle: isEnabled ? 'bg-red-500' : 'bg-slate-300'
-    }
-  }
+      bg: isEnabled ? "bg-red-100" : "bg-slate-100",
+      icon: isEnabled ? "text-red-600" : "text-slate-600",
+      toggle: isEnabled ? "bg-red-500" : "bg-slate-300",
+    },
+  };
 
-  const color = colors[variant]
+  const color = colors[variant];
 
   return (
     <div className="flex items-center justify-between py-4 px-4 rounded-lg border border-slate-200">
       <div className="flex items-center gap-3 flex-1">
-        <div className={cn('p-2 rounded-full', color.bg)}>
+        <div className={cn("p-2 rounded-full", color.bg)}>
           <Icon size={16} className={color.icon} />
         </div>
         <div>
@@ -163,20 +163,20 @@ function StatusToggle({
       <button
         onClick={() => onChange(!isEnabled)}
         className={cn(
-          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200',
-          'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2',
-          color.toggle
+          "relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200",
+          "focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2",
+          color.toggle,
         )}
       >
         <span
           className={cn(
-            'inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200',
-            isEnabled ? 'translate-x-6' : 'translate-x-1'
+            "inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200",
+            isEnabled ? "translate-x-6" : "translate-x-1",
           )}
         />
       </button>
     </div>
-  )
+  );
 }
 
 /**
@@ -187,23 +187,23 @@ function ActionCard({
   description,
   icon: Icon,
   onClick,
-  variant = 'default'
+  variant = "default",
 }: {
-  title: string
-  description: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
-  onClick: () => void
-  variant?: 'default' | 'danger'
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  onClick: () => void;
+  variant?: "default" | "danger";
 }) {
   const variants = {
-    default: 'hover:border-primary-200 hover:bg-primary-50',
-    danger: 'hover:border-red-200 hover:bg-red-50'
-  }
+    default: "hover:border-primary-200 hover:bg-primary-50",
+    danger: "hover:border-red-200 hover:bg-red-50",
+  };
 
   const iconColors = {
-    default: 'text-primary-600',
-    danger: 'text-red-600'
-  }
+    default: "text-primary-600",
+    danger: "text-red-600",
+  };
 
   return (
     <motion.button
@@ -211,9 +211,9 @@ function ActionCard({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={cn(
-        'w-full p-4 rounded-lg border border-slate-200 text-left transition-all duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2',
-        variants[variant]
+        "w-full p-4 rounded-lg border border-slate-200 text-left transition-all duration-200",
+        "focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2",
+        variants[variant],
       )}
     >
       <div className="flex items-center gap-3">
@@ -224,7 +224,7 @@ function ActionCard({
         </div>
       </div>
     </motion.button>
-  )
+  );
 }
 
 /**
@@ -232,87 +232,84 @@ function ActionCard({
  */
 export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps) {
   // Editing states
-  const [editingField, setEditingField] = useState<string | null>(null)
+  const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState({
-    businessName: client.businessName || '',
-    contactFirstName: client.contactFirstName || '',
-    contactLastName: client.contactLastName || '',
-    contactEmail: client.contactEmail || '',
-    contactPhone: client.contactPhone || '',
-    address: client.address || '',
-    siret: client.siret || '',
-    creditLimit: client.creditLimit?.toString() || '',
-    paymentTermDays: client.paymentTermDays?.toString() || '30'
-  })
+    businessName: client.businessName || "",
+    contactFirstName: client.firstName || "",
+    contactLastName: client.lastName || "",
+    contactEmail: client.email || "",
+    contactPhone: client.phone || "",
+    address: client.address || "",
+    taxId: client.taxId || "",
+    creditLimit: client.creditLimit?.toString() || "",
+    paymentTermDays: client.paymentTermDays?.toString() || "30",
+  });
 
   // Status states
-  const [isActive, setIsActive] = useState(client.status === 'ACTIVE')
-  const [creditEnabled, setCreditEnabled] = useState(true)
-  const [autoNotifications, setAutoNotifications] = useState(true)
+  const [isActive, setIsActive] = useState(client.status === "ACTIVE");
+  const [creditEnabled, setCreditEnabled] = useState(true);
+  const [autoNotifications, setAutoNotifications] = useState(true);
 
   // Handle field editing
   const handleEdit = (field: string) => {
-    setEditingField(field)
-  }
+    setEditingField(field);
+  };
 
   const handleSave = (field: string) => {
     // TODO: Call API to update client
-    console.log('Updating client field:', field, editValues[field as keyof typeof editValues])
-    setEditingField(null)
+    console.log("Updating client field:", field, editValues[field as keyof typeof editValues]);
+    setEditingField(null);
 
     if (onClientUpdate) {
       // Simulate update
       onClientUpdate({
         ...client,
-        [field]: editValues[field as keyof typeof editValues]
-      })
+        [field]: editValues[field as keyof typeof editValues],
+      });
     }
-  }
+  };
 
   const handleCancel = (field: string) => {
     // Reset to original value
-    const originalValue = (client as any)[field] || ''
-    setEditValues(prev => ({
+    const originalValue = (client as any)[field] || "";
+    setEditValues((prev) => ({
       ...prev,
-      [field]: originalValue
-    }))
-    setEditingField(null)
-  }
+      [field]: originalValue,
+    }));
+    setEditingField(null);
+  };
 
   const handleChange = (field: string, value: string) => {
-    setEditValues(prev => ({
+    setEditValues((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   // Handle status changes
   const handleStatusChange = (enabled: boolean) => {
-    setIsActive(enabled)
+    setIsActive(enabled);
     // TODO: Call API to update client status
-    console.log('Updating client status:', enabled ? 'ACTIVE' : 'INACTIVE')
-  }
+    console.log("Updating client status:", enabled ? "ACTIVE" : "INACTIVE");
+  };
 
   const handleCreditToggle = (enabled: boolean) => {
-    setCreditEnabled(enabled)
+    setCreditEnabled(enabled);
     // TODO: Call API to update credit settings
-    console.log('Updating credit enabled:', enabled)
-  }
+    console.log("Updating credit enabled:", enabled);
+  };
 
   const handleNotificationsToggle = (enabled: boolean) => {
-    setAutoNotifications(enabled)
+    setAutoNotifications(enabled);
     // TODO: Call API to update notification settings
-    console.log('Updating auto notifications:', enabled)
-  }
+    console.log("Updating auto notifications:", enabled);
+  };
 
   return (
     <TabContentContainer>
       {/* Client Information */}
       <div className="mb-8">
-        <TabSectionHeader
-          title="Informations Client"
-          description="Gérer les données personnelles et coordonnées"
-        />
+        <TabSectionHeader title="Informations Client" description="Gérer les données personnelles et coordonnées" />
 
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <div className="space-y-4">
@@ -320,11 +317,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
               label="Nom de l'entreprise"
               value={editValues.businessName}
               icon={Building2}
-              isEditing={editingField === 'businessName'}
-              onChange={(value) => handleChange('businessName', value)}
-              onSave={() => handleSave('businessName')}
-              onCancel={() => handleCancel('businessName')}
-              onEdit={() => handleEdit('businessName')}
+              isEditing={editingField === "businessName"}
+              onChange={(value) => handleChange("businessName", value)}
+              onSave={() => handleSave("businessName")}
+              onCancel={() => handleCancel("businessName")}
+              onEdit={() => handleEdit("businessName")}
               placeholder="Nom de l'entreprise"
               required
             />
@@ -334,11 +331,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
                 label="Prénom du contact"
                 value={editValues.contactFirstName}
                 icon={User}
-                isEditing={editingField === 'contactFirstName'}
-                onChange={(value) => handleChange('contactFirstName', value)}
-                onSave={() => handleSave('contactFirstName')}
-                onCancel={() => handleCancel('contactFirstName')}
-                onEdit={() => handleEdit('contactFirstName')}
+                isEditing={editingField === "contactFirstName"}
+                onChange={(value) => handleChange("contactFirstName", value)}
+                onSave={() => handleSave("contactFirstName")}
+                onCancel={() => handleCancel("contactFirstName")}
+                onEdit={() => handleEdit("contactFirstName")}
                 placeholder="Prénom"
               />
 
@@ -346,11 +343,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
                 label="Nom du contact"
                 value={editValues.contactLastName}
                 icon={User}
-                isEditing={editingField === 'contactLastName'}
-                onChange={(value) => handleChange('contactLastName', value)}
-                onSave={() => handleSave('contactLastName')}
-                onCancel={() => handleCancel('contactLastName')}
-                onEdit={() => handleEdit('contactLastName')}
+                isEditing={editingField === "contactLastName"}
+                onChange={(value) => handleChange("contactLastName", value)}
+                onSave={() => handleSave("contactLastName")}
+                onCancel={() => handleCancel("contactLastName")}
+                onEdit={() => handleEdit("contactLastName")}
                 placeholder="Nom"
               />
             </div>
@@ -361,11 +358,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
                 value={editValues.contactEmail}
                 type="email"
                 icon={Mail}
-                isEditing={editingField === 'contactEmail'}
-                onChange={(value) => handleChange('contactEmail', value)}
-                onSave={() => handleSave('contactEmail')}
-                onCancel={() => handleCancel('contactEmail')}
-                onEdit={() => handleEdit('contactEmail')}
+                isEditing={editingField === "contactEmail"}
+                onChange={(value) => handleChange("contactEmail", value)}
+                onSave={() => handleSave("contactEmail")}
+                onCancel={() => handleCancel("contactEmail")}
+                onEdit={() => handleEdit("contactEmail")}
                 placeholder="email@exemple.fr"
               />
 
@@ -374,11 +371,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
                 value={editValues.contactPhone}
                 type="tel"
                 icon={Phone}
-                isEditing={editingField === 'contactPhone'}
-                onChange={(value) => handleChange('contactPhone', value)}
-                onSave={() => handleSave('contactPhone')}
-                onCancel={() => handleCancel('contactPhone')}
-                onEdit={() => handleEdit('contactPhone')}
+                isEditing={editingField === "contactPhone"}
+                onChange={(value) => handleChange("contactPhone", value)}
+                onSave={() => handleSave("contactPhone")}
+                onCancel={() => handleCancel("contactPhone")}
+                onEdit={() => handleEdit("contactPhone")}
                 placeholder="01 23 45 67 89"
               />
             </div>
@@ -387,23 +384,23 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
               label="Adresse"
               value={editValues.address}
               icon={MapPin}
-              isEditing={editingField === 'address'}
-              onChange={(value) => handleChange('address', value)}
-              onSave={() => handleSave('address')}
-              onCancel={() => handleCancel('address')}
-              onEdit={() => handleEdit('address')}
+              isEditing={editingField === "address"}
+              onChange={(value) => handleChange("address", value)}
+              onSave={() => handleSave("address")}
+              onCancel={() => handleCancel("address")}
+              onEdit={() => handleEdit("address")}
               placeholder="Adresse complète"
             />
 
             <EditableField
-              label="SIRET"
-              value={editValues.siret}
+              label="TaxId"
+              value={editValues.taxId}
               icon={FileText}
-              isEditing={editingField === 'siret'}
-              onChange={(value) => handleChange('siret', value)}
-              onSave={() => handleSave('siret')}
-              onCancel={() => handleCancel('siret')}
-              onEdit={() => handleEdit('siret')}
+              isEditing={editingField === "taxId"}
+              onChange={(value) => handleChange("taxId", value)}
+              onSave={() => handleSave("taxId")}
+              onCancel={() => handleCancel("taxId")}
+              onEdit={() => handleEdit("taxId")}
               placeholder="12345678901234"
             />
           </div>
@@ -412,10 +409,7 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
 
       {/* Credit Settings */}
       <div className="mb-8">
-        <TabSectionHeader
-          title="Paramètres de Crédit"
-          description="Configurer les limites et conditions de paiement"
-        />
+        <TabSectionHeader title="Paramètres de Crédit" description="Configurer les limites et conditions de paiement" />
 
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -424,11 +418,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
               value={editValues.creditLimit}
               type="number"
               icon={CreditCard}
-              isEditing={editingField === 'creditLimit'}
-              onChange={(value) => handleChange('creditLimit', value)}
-              onSave={() => handleSave('creditLimit')}
-              onCancel={() => handleCancel('creditLimit')}
-              onEdit={() => handleEdit('creditLimit')}
+              isEditing={editingField === "creditLimit"}
+              onChange={(value) => handleChange("creditLimit", value)}
+              onSave={() => handleSave("creditLimit")}
+              onCancel={() => handleCancel("creditLimit")}
+              onEdit={() => handleEdit("creditLimit")}
               placeholder="10000"
             />
 
@@ -437,11 +431,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
               value={editValues.paymentTermDays}
               type="number"
               icon={Calendar}
-              isEditing={editingField === 'paymentTermDays'}
-              onChange={(value) => handleChange('paymentTermDays', value)}
-              onSave={() => handleSave('paymentTermDays')}
-              onCancel={() => handleCancel('paymentTermDays')}
-              onEdit={() => handleEdit('paymentTermDays')}
+              isEditing={editingField === "paymentTermDays"}
+              onChange={(value) => handleChange("paymentTermDays", value)}
+              onSave={() => handleSave("paymentTermDays")}
+              onCancel={() => handleCancel("paymentTermDays")}
+              onEdit={() => handleEdit("paymentTermDays")}
               placeholder="30"
             />
           </div>
@@ -466,10 +460,7 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
 
       {/* Account Status */}
       <div className="mb-8">
-        <TabSectionHeader
-          title="Statut du Compte"
-          description="Gérer l'activation et la sécurité du compte"
-        />
+        <TabSectionHeader title="Statut du Compte" description="Gérer l'activation et la sécurité du compte" />
 
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <StatusToggle
@@ -481,17 +472,14 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
             }
             isEnabled={isActive}
             onChange={handleStatusChange}
-            variant={isActive ? 'default' : 'danger'}
+            variant={isActive ? "default" : "danger"}
           />
         </div>
       </div>
 
       {/* Actions */}
       <div className="space-y-6">
-        <TabSectionHeader
-          title="Actions Avancées"
-          description="Opérations de gestion du compte client"
-        />
+        <TabSectionHeader title="Actions Avancées" description="Opérations de gestion du compte client" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ActionCard
@@ -500,7 +488,7 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
             icon={History}
             onClick={() => {
               // TODO: Open history modal or navigate to history page
-              console.log('View complete history for client', client.id)
+              console.log("View complete history for client", client.id);
             }}
           />
 
@@ -510,7 +498,7 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
             icon={FileText}
             onClick={() => {
               // TODO: Export client data
-              console.log('Export client data', client.id)
+              console.log("Export client data", client.id);
             }}
           />
 
@@ -520,7 +508,7 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
             icon={Shield}
             onClick={() => {
               // TODO: Send password reset
-              console.log('Reset password for client', client.id)
+              console.log("Reset password for client", client.id);
             }}
           />
 
@@ -531,11 +519,11 @@ export default function SettingsTab({ client, onClientUpdate }: SettingsTabProps
             variant="danger"
             onClick={() => {
               // TODO: Confirm and delete client
-              console.log('Delete client', client.id)
+              console.log("Delete client", client.id);
             }}
           />
         </div>
       </div>
     </TabContentContainer>
-  )
+  );
 }

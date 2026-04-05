@@ -97,24 +97,20 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
         throw new Error(data.error || "Failed to fetch credits");
       }
 
-      console.log("Raw API response:", data);
-
       // Transform credits data to convert decimal and date strings
       const creditsWithTypes = (data.data || []).map((credit: any) => ({
         ...credit,
         createdAt: new Date(credit.createdAt),
         updatedAt: new Date(credit.updatedAt),
         dueDate: credit.dueDate ? new Date(credit.dueDate) : null,
-        totalAmountNumber: parseFloat(credit.totalAmount || "0"),
-        remainingAmountNumber: parseFloat(credit.remainingAmount || "0"),
         paidAmount: parseFloat(credit.totalAmount || "0") - parseFloat(credit.remainingAmount || "0"),
         allocations: (credit.allocations || []).map((allocation: any) => ({
           ...allocation,
           payment: {
             ...allocation.payment,
             paymentDate: new Date(allocation.payment.paymentDate),
-          }
-        }))
+          },
+        })),
       }));
 
       console.log("Processed credits:", creditsWithTypes);
@@ -126,16 +122,16 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
       // Calculate stats from the response
       const calculatedStats = {
         totalCredits: creditsWithTypes.length,
-        openCredits: creditsWithTypes.filter((c: any) => c.status === 'OPEN').length,
-        paidCredits: creditsWithTypes.filter((c: any) => c.status === 'PAID').length,
-        overdueCredits: creditsWithTypes.filter((c: any) => c.status === 'OVERDUE').length,
-        totalAmount: creditsWithTypes.reduce((sum: number, c: any) => sum + c.totalAmountNumber, 0),
+        openCredits: creditsWithTypes.filter((c: any) => c.status === "OPEN").length,
+        paidCredits: creditsWithTypes.filter((c: any) => c.status === "PAID").length,
+        overdueCredits: creditsWithTypes.filter((c: any) => c.status === "OVERDUE").length,
+        totalAmount: creditsWithTypes.reduce((sum: number, c: any) => sum + c.totalAmount, 0),
         totalOutstanding: creditsWithTypes
-          .filter((c: any) => c.status === 'OPEN')
-          .reduce((sum: number, c: any) => sum + c.remainingAmountNumber, 0),
+          .filter((c: any) => c.status === "OPEN")
+          .reduce((sum: number, c: any) => sum + c.remainingAmount, 0),
         totalOverdue: creditsWithTypes
-          .filter((c: any) => c.status === 'OVERDUE')
-          .reduce((sum: number, c: any) => sum + c.remainingAmountNumber, 0),
+          .filter((c: any) => c.status === "OVERDUE")
+          .reduce((sum: number, c: any) => sum + c.remainingAmount, 0),
       };
 
       setStats(calculatedStats);

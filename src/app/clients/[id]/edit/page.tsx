@@ -343,7 +343,7 @@ export default function EditClientPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
-                      Nom de l'entreprise
+                      Nom de l&apos;entreprise
                     </label>
                     <input
                       type="text"

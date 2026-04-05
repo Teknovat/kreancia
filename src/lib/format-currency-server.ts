@@ -17,7 +17,7 @@ export async function formatCurrencyWithMerchantContext(
   try {
     const session = await getAuthenticatedSession()
     return formatCurrency(amount, session.currency)
-  } catch (error) {
+  } catch {
     // Fallback to default currency if no session
     return formatCurrency(amount, 'TND')
   }
@@ -30,7 +30,7 @@ export async function getMerchantCurrency(): Promise<string> {
   try {
     const session = await getAuthenticatedSession()
     return session.currency || 'TND'
-  } catch (error) {
+  } catch {
     return 'TND'
   }
 }
