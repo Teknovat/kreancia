@@ -3,23 +3,13 @@
  * Simple, efficient client editing form
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import {
-  ArrowLeft,
-  Save,
-  User,
-  Mail,
-  Phone,
-  Building2,
-  MapPin,
-  AlertTriangle,
-  Eye
-} from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { ArrowLeft, Save, User, Mail, Phone, Building2, MapPin, AlertTriangle, Eye } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 
 interface FormData {
   firstName: string;
@@ -55,15 +45,15 @@ export default function EditClientPage() {
   const [client, setClient] = useState<Client | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    businessName: '',
-    taxId: '',
-    creditLimit: '',
-    paymentTermDays: '30'
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    businessName: "",
+    taxId: "",
+    creditLimit: "",
+    paymentTermDays: "30",
   });
 
   // Load client data
@@ -74,25 +64,25 @@ export default function EditClientPage() {
       try {
         const response = await fetch(`/api/clients/${params.id}`);
         if (response.ok) {
-          const clientData = await response.json();
-          setClient(clientData);
+          const { data } = await response.json();
+          setClient(data);
           setFormData({
-            firstName: clientData.firstName || '',
-            lastName: clientData.lastName || '',
-            email: clientData.email || '',
-            phone: clientData.phone || '',
-            address: clientData.address || '',
-            businessName: clientData.businessName || '',
-            taxId: clientData.taxId || '',
-            creditLimit: clientData.creditLimit ? clientData.creditLimit.toString() : '',
-            paymentTermDays: clientData.paymentTermDays?.toString() || '30'
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            address: data.address || "",
+            businessName: data.businessName || "",
+            taxId: data.taxId || "",
+            creditLimit: data.creditLimit ? data.creditLimit.toString() : "",
+            paymentTermDays: data.paymentTermDays?.toString() || "30",
           });
         } else {
-          router.push('/clients');
+          router.push("/clients");
         }
       } catch (error) {
-        console.error('Error loading client:', error);
-        router.push('/clients');
+        console.error("Error loading client:", error);
+        router.push("/clients");
       } finally {
         setIsLoading(false);
       }
@@ -105,15 +95,15 @@ export default function EditClientPage() {
     const newErrors: Partial<FormData> = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'Prénom requis';
+      newErrors.firstName = "Prénom requis";
     }
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Nom requis';
+      newErrors.lastName = "Nom requis";
     }
     if (!formData.email.trim()) {
-      newErrors.email = 'Email requis';
+      newErrors.email = "Email requis";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email invalide';
+      newErrors.email = "Email invalide";
     }
 
     setErrors(newErrors);
@@ -131,33 +121,33 @@ export default function EditClientPage() {
 
     try {
       const response = await fetch(`/api/clients/${params?.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
           creditLimit: formData.creditLimit ? parseFloat(formData.creditLimit) : null,
-          paymentTermDays: parseInt(formData.paymentTermDays)
+          paymentTermDays: parseInt(formData.paymentTermDays),
         }),
       });
 
       if (response.ok) {
         router.push(`/clients/${params?.id}`);
       } else {
-        console.error('Error updating client');
+        console.error("Error updating client");
       }
     } catch (error) {
-      console.error('Error updating client:', error);
+      console.error("Error updating client:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -182,7 +172,7 @@ export default function EditClientPage() {
             <AlertTriangle size={48} className="text-red-500 mx-auto mb-4" />
             <h1 className="text-xl font-bold text-gray-900 mb-2">Client non trouvé</h1>
             <button
-              onClick={() => router.push('/clients')}
+              onClick={() => router.push("/clients")}
               className="px-4 py-2 bg-gray-900 text-white border-2 border-gray-900 hover:bg-white hover:text-gray-900 transition-all"
             >
               Retour aux clients
@@ -207,9 +197,7 @@ export default function EditClientPage() {
                 <ArrowLeft size={20} />
               </button>
               <div className="flex-1">
-                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">
-                  Modifier Client
-                </h1>
+                <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight">Modifier Client</h1>
                 <p className="text-lg text-gray-600 mt-2">
                   {client.firstName} {client.lastName}
                 </p>
@@ -228,9 +216,7 @@ export default function EditClientPage() {
         <div className="max-w-4xl mx-auto px-6 py-8">
           <form onSubmit={handleSubmit} className="bg-white border-2 border-gray-900">
             <div className="border-b-2 border-gray-900 p-6">
-              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-                Informations Client
-              </h2>
+              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Informations Client</h2>
             </div>
 
             <div className="p-6 space-y-6">
@@ -244,9 +230,9 @@ export default function EditClientPage() {
                   <input
                     type="text"
                     value={formData.firstName}
-                    onChange={(e) => handleChange('firstName', e.target.value)}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-200'
+                      errors.firstName ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     disabled={isSubmitting}
                   />
@@ -266,9 +252,9 @@ export default function EditClientPage() {
                   <input
                     type="text"
                     value={formData.lastName}
-                    onChange={(e) => handleChange('lastName', e.target.value)}
+                    onChange={(e) => handleChange("lastName", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-200'
+                      errors.lastName ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     disabled={isSubmitting}
                   />
@@ -290,9 +276,9 @@ export default function EditClientPage() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
+                    onChange={(e) => handleChange("email", e.target.value)}
                     className={`w-full px-4 py-3 border-2 ${
-                      errors.email ? 'border-red-500' : 'border-gray-200'
+                      errors.email ? "border-red-500" : "border-gray-200"
                     } focus:border-gray-900 focus:outline-none`}
                     disabled={isSubmitting}
                   />
@@ -312,7 +298,7 @@ export default function EditClientPage() {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
+                    onChange={(e) => handleChange("phone", e.target.value)}
                     className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                     disabled={isSubmitting}
                   />
@@ -327,7 +313,7 @@ export default function EditClientPage() {
                 <input
                   type="text"
                   value={formData.address}
-                  onChange={(e) => handleChange('address', e.target.value)}
+                  onChange={(e) => handleChange("address", e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                   disabled={isSubmitting}
                 />
@@ -348,7 +334,7 @@ export default function EditClientPage() {
                     <input
                       type="text"
                       value={formData.businessName}
-                      onChange={(e) => handleChange('businessName', e.target.value)}
+                      onChange={(e) => handleChange("businessName", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                     />
@@ -361,7 +347,7 @@ export default function EditClientPage() {
                     <input
                       type="text"
                       value={formData.taxId}
-                      onChange={(e) => handleChange('taxId', e.target.value)}
+                      onChange={(e) => handleChange("taxId", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                     />
@@ -377,7 +363,7 @@ export default function EditClientPage() {
                       type="number"
                       step="0.01"
                       value={formData.creditLimit}
-                      onChange={(e) => handleChange('creditLimit', e.target.value)}
+                      onChange={(e) => handleChange("creditLimit", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                       placeholder="0.00"
@@ -391,7 +377,7 @@ export default function EditClientPage() {
                     <input
                       type="number"
                       value={formData.paymentTermDays}
-                      onChange={(e) => handleChange('paymentTermDays', e.target.value)}
+                      onChange={(e) => handleChange("paymentTermDays", e.target.value)}
                       className="w-full px-4 py-3 border-2 border-gray-200 focus:border-gray-900 focus:outline-none"
                       disabled={isSubmitting}
                       min="1"
@@ -418,7 +404,7 @@ export default function EditClientPage() {
                   disabled={isSubmitting}
                 >
                   <Save size={20} />
-                  {isSubmitting ? 'Mise à jour...' : 'Mettre à jour'}
+                  {isSubmitting ? "Mise à jour..." : "Mettre à jour"}
                 </button>
               </div>
             </div>

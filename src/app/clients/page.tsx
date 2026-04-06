@@ -10,7 +10,6 @@ import {
   Search,
   Filter,
   Plus,
-  MoreHorizontal,
   Users,
   AlertTriangle,
   RefreshCw
@@ -44,7 +43,7 @@ interface ClientTableProps {
   formatAmount: (amount: number) => string;
 }
 
-function ClientTable({ clients, loading, onEdit, onDelete: _onDelete, formatAmount }: ClientTableProps) {
+function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: ClientTableProps) {
   if (loading) {
     return (
       <Card>
@@ -156,11 +155,11 @@ function ClientTable({ clients, loading, onEdit, onDelete: _onDelete, formatAmou
                     Modifier
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="danger"
                     size="sm"
-                    className="p-2"
+                    onClick={() => onDelete(client)}
                   >
-                    <MoreHorizontal size={16} />
+                    Supprimer
                   </Button>
                 </div>
               </div>
@@ -197,9 +196,17 @@ export default function ClientsPageRedesigned() {
     window.location.href = `/clients/${client.id}/edit`;
   };
 
-  const handleDelete = (client: ClientWithStats) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${client.firstName} ${client.lastName} ?`)) {
-      deleteClient(client.id);
+  const handleDelete = async (client: ClientWithStats) => {
+    const hasActiveCredits = client.outstandingAmount > 0;
+    const confirmMessage = hasActiveCredits
+      ? `⚠️ ATTENTION: ${client.firstName} ${client.lastName} a un encours de ${formatAmount(client.outstandingAmount)}.\n\nVoulez-vous vraiment supprimer ce client ? Cette action est irréversible.`
+      : `Êtes-vous sûr de vouloir supprimer ${client.firstName} ${client.lastName} ?\n\nCette action est irréversible.`;
+
+    if (confirm(confirmMessage)) {
+      const success = await deleteClient(client.id);
+      if (success) {
+        console.log(`Client ${client.firstName} ${client.lastName} supprimé avec succès`);
+      }
     }
   };
 

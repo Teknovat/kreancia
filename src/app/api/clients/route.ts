@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // For overdue filter, we need to include credit information
+    // Always include credit information for calculating outstanding amounts
     const include = {
       _count: {
         select: {
@@ -79,14 +79,16 @@ export async function GET(request: NextRequest) {
           payments: true,
         },
       },
-      credits: hasOverdue
-        ? {
-            where: {
-              status: "OPEN" as const,
-              dueDate: { lt: new Date() },
-            },
-          }
-        : false,
+      credits: {
+        select: {
+          id: true,
+          totalAmount: true,
+          remainingAmount: true,
+          status: true,
+          dueDate: true,
+          createdAt: true,
+        },
+      },
     };
 
     const clients = await ClientOperations.findMany({
@@ -107,14 +109,26 @@ export async function GET(request: NextRequest) {
     const allClients = await db.client.findMany({
       include: {
         credits: {
-          where: { status: "OPEN" },
+          select: {
+            totalAmount: true,
+            remainingAmount: true,
+            status: true,
+            dueDate: true,
+          },
         },
       },
     });
 
     const stats = {
       totalClients: allClients.length,
-      activeClients: allClients.length, // All clients are considered active by default since status is computed
+      activeClients: allClients.filter((client) => {
+        const overdueAmount = client.credits.reduce((sum, credit) => {
+          return credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0
+            ? sum + Number(credit.remainingAmount)
+            : sum;
+        }, 0);
+        return overdueAmount === 0; // Active = no overdue amounts
+      }).length,
       totalOutstanding: allClients.reduce((sum, client) => {
         return (
           sum +
@@ -124,36 +138,66 @@ export async function GET(request: NextRequest) {
         );
       }, 0),
       overdueClients: allClients.filter((client) => {
-        return client.credits.some((credit) => credit.status === "OPEN" && credit.dueDate && credit.dueDate < new Date());
+        return client.credits.some((credit) =>
+          credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0
+        );
       }).length,
       avgCreditLimit:
-        allClients.length > 0 ? allClients.reduce((sum, c) => sum + Number(c.creditLimit), 0) / allClients.length : 0,
+        allClients.length > 0 ? allClients.reduce((sum, c) => sum + Number(c.creditLimit || 0), 0) / allClients.length : 0,
     };
 
     // Filter clients by overdue if requested
     let filteredClients = clients;
     if (hasOverdue) {
-      filteredClients = clients.filter((client: any) => client.credits && client.credits.length > 0);
+      filteredClients = clients.filter((client: any) =>
+        client.credits && client.credits.some((credit: any) =>
+          credit.status === "OPEN" && credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0
+        )
+      );
     }
 
     // Transform clients to match ClientWithStats interface
-    const clientsWithStats = filteredClients.map((client: any) => ({
-      ...client,
-      fullName: `${client.firstName} ${client.lastName}`,
-      totalCredits: 0, // TODO: Calculate from actual credits
-      outstandingAmount: client.credits
+    const clientsWithStats = filteredClients.map((client: any) => {
+      const totalCreditsAmount = client.credits
+        ? client.credits.reduce((sum: number, credit: any) => sum + Number(credit.totalAmount), 0)
+        : 0;
+
+      const outstandingAmount = client.credits
         ? client.credits.reduce((sum: number, credit: any) => sum + Number(credit.remainingAmount), 0)
-        : 0,
-      overdueAmount: client.credits
+        : 0;
+
+      const overdueAmount = client.credits
         ? client.credits.reduce((sum: number, credit: any) => {
-            return credit.dueDate && credit.dueDate < new Date() ? sum + Number(credit.remainingAmount) : sum;
+            return credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0
+              ? sum + Number(credit.remainingAmount)
+              : sum;
           }, 0)
-        : 0,
-      lastActivity: client.updatedAt,
-      creditCount: client._count?.credits || 0,
-      paymentCount: client._count?.payments || 0,
-      status: "ACTIVE" as const, // Default status, should be computed based on business logic
-    }));
+        : 0;
+
+      const lastActivity = client.credits && client.credits.length > 0
+        ? new Date(Math.max(...client.credits.map((c: any) => new Date(c.createdAt).getTime())))
+        : client.updatedAt;
+
+      // Calculate status based on outstanding and overdue amounts
+      let status: "ACTIVE" | "INACTIVE" | "SUSPENDED" = "ACTIVE";
+      if (overdueAmount > 0) {
+        status = "SUSPENDED"; // Client has overdue amounts
+      } else if (outstandingAmount === 0 && client.credits && client.credits.length > 0) {
+        status = "ACTIVE"; // Client has credits but all paid
+      }
+
+      return {
+        ...client,
+        fullName: `${client.firstName} ${client.lastName}`,
+        totalCredits: totalCreditsAmount,
+        outstandingAmount,
+        overdueAmount,
+        lastActivity,
+        creditCount: client._count?.credits || 0,
+        paymentCount: client._count?.payments || 0,
+        status,
+      };
+    });
 
     return NextResponse.json({
       success: true,
