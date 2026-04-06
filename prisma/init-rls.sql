@@ -1,5 +1,5 @@
 -- Enable Row Level Security for Multi-tenant Isolation
--- This migration enables RLS on all tenant tables and creates security policies
+-- This script enables RLS on all tenant tables and creates security policies
 
 -- Enable Row Level Security on all tenant tables
 ALTER TABLE "merchants" ENABLE ROW LEVEL SECURITY;

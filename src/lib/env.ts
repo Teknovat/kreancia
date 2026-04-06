@@ -1,38 +1,50 @@
 import { z } from 'zod'
 
-// Environment variables schema
-const envSchema = z.object({
-  // Database
-  DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
+// Simple environment variables - only validate what's needed
+export const env = {
+  DATABASE_URL: process.env.DATABASE_URL || '',
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL || '',
+  NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+  POSTGRES_DB: process.env.POSTGRES_DB,
+  POSTGRES_USER: process.env.POSTGRES_USER,
+  POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
+  POSTGRES_PORT: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : undefined,
+}
 
-  // NextAuth
+// Validation schemas for runtime checks
+const dbSchema = z.string().url('DATABASE_URL must be a valid URL')
+const authSchema = z.object({
   NEXTAUTH_SECRET: z.string().min(32, 'NEXTAUTH_SECRET must be at least 32 characters'),
   NEXTAUTH_URL: z.string().url('NEXTAUTH_URL must be a valid URL'),
-
-  // Node environment
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-
-  // Optional PostgreSQL connection details (for Docker)
-  POSTGRES_DB: z.string().optional(),
-  POSTGRES_USER: z.string().optional(),
-  POSTGRES_PASSWORD: z.string().optional(),
-  POSTGRES_PORT: z.string().transform(Number).optional(),
 })
 
-// Parse and validate environment variables
-export function validateEnv() {
+// Validate database URL when needed
+export function validateDatabaseUrl() {
   try {
-    return envSchema.parse(process.env)
+    dbSchema.parse(env.DATABASE_URL)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
-      throw new Error(`❌ Invalid environment variables:\n${missingVars}`)
+      throw new Error(`❌ Invalid DATABASE_URL: ${error.errors[0]?.message}`)
     }
     throw error
   }
 }
 
-// Export validated environment variables
-export const env = validateEnv()
+// Validate NextAuth variables when needed
+export function validateAuthEnv() {
+  try {
+    return authSchema.parse({
+      NEXTAUTH_SECRET: env.NEXTAUTH_SECRET,
+      NEXTAUTH_URL: env.NEXTAUTH_URL,
+    })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
+      throw new Error(`❌ Missing NextAuth environment variables:\n${missingVars}`)
+    }
+    throw error
+  }
+}
 
 export default env
