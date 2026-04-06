@@ -3,15 +3,15 @@
  * Simple, efficient login interface
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertTriangle } from 'lucide-react';
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertTriangle } from "lucide-react";
 
 interface LoginFormData {
   email: string;
@@ -21,16 +21,16 @@ interface LoginFormData {
 
 // Form validation schema
 const loginSchema = z.object({
-  email: z.string().email('Veuillez entrer un email valide'),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
-  rememberMe: z.boolean().optional()
+  email: z.string().email("Veuillez entrer un email valide"),
+  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  rememberMe: z.boolean().optional(),
 });
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  const error = searchParams.get('error');
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const error = searchParams.get("error");
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,28 +38,28 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema)
+    resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
-        redirect: false
+        redirect: false,
       });
 
       if (result?.error) {
-        console.error('Login failed:', result.error);
+        console.error("Login failed:", result.error);
       } else {
         router.push(callbackUrl);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +73,8 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 text-white mb-6">
             <span className="text-2xl font-black">K</span>
           </div>
-          <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight mb-2">
-            Kreancia
-          </h1>
-          <p className="text-lg text-gray-600">
-            Connexion à votre tableau de bord
-          </p>
+          <h1 className="text-4xl font-black text-gray-900 uppercase tracking-tight mb-2">Kreancia</h1>
+          <p className="text-lg text-gray-600">Connexion à votre tableau de bord</p>
         </div>
 
         {/* Error Message */}
@@ -87,10 +83,9 @@ export default function LoginPage() {
             <div className="flex items-start gap-2">
               <AlertTriangle size={20} className="text-red-600 mt-0.5" />
               <p className="text-red-800 font-medium">
-                {error === 'CredentialsSignin'
-                  ? 'Email ou mot de passe incorrect. Veuillez réessayer.'
-                  : 'Une erreur est survenue. Veuillez réessayer.'
-                }
+                {error === "CredentialsSignin"
+                  ? "Email ou mot de passe incorrect. Veuillez réessayer."
+                  : "Une erreur est survenue. Veuillez réessayer."}
               </p>
             </div>
           </div>
@@ -99,9 +94,7 @@ export default function LoginPage() {
         {/* Login Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white border-2 border-gray-900">
           <div className="border-b-2 border-gray-900 p-6">
-            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">
-              Connexion
-            </h2>
+            <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wide">Connexion</h2>
           </div>
 
           <div className="p-6 space-y-6">
@@ -112,11 +105,11 @@ export default function LoginPage() {
                 Email *
               </label>
               <input
-                {...register('email')}
+                {...register("email")}
                 type="email"
                 id="email"
                 className={`w-full px-4 py-3 border-2 ${
-                  errors.email ? 'border-red-500' : 'border-gray-200'
+                  errors.email ? "border-red-500" : "border-gray-200"
                 } focus:border-gray-900 focus:outline-none`}
                 placeholder="merchant@exemple.com"
                 disabled={isLoading}
@@ -137,11 +130,11 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <input
-                  {...register('password')}
-                  type={showPassword ? 'text' : 'password'}
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   className={`w-full px-4 py-3 pr-12 border-2 ${
-                    errors.password ? 'border-red-500' : 'border-gray-200'
+                    errors.password ? "border-red-500" : "border-gray-200"
                   } focus:border-gray-900 focus:outline-none`}
                   placeholder="Votre mot de passe"
                   disabled={isLoading}
@@ -170,7 +163,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                  {...register('rememberMe')}
+                  {...register("rememberMe")}
                   type="checkbox"
                   id="rememberMe"
                   className="h-4 w-4 border-2 border-gray-300 text-gray-900 focus:ring-gray-900"
@@ -204,23 +197,6 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-
-        {/* Demo Credentials */}
-        <div className="mt-8 p-6 bg-white border-2 border-gray-200">
-          <h3 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wide">
-            Identifiants de démo
-          </h3>
-          <div className="space-y-2 text-sm text-gray-700">
-            <div className="flex justify-between">
-              <span className="font-medium">Email:</span>
-              <span className="font-mono">demo@merchant.com</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-medium">Mot de passe:</span>
-              <span className="font-mono">merchant123</span>
-            </div>
-          </div>
-        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">

@@ -6,6 +6,12 @@ export const env = {
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || '',
   NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+
+  // Admin Setup (for initial deployment)
+  ADMIN_SETUP_MODE: process.env.ADMIN_SETUP_MODE === 'true',
+  ADMIN_SETUP_TOKEN: process.env.ADMIN_SETUP_TOKEN || '',
+
+  // PostgreSQL (optional Docker setup)
   POSTGRES_DB: process.env.POSTGRES_DB,
   POSTGRES_USER: process.env.POSTGRES_USER,
   POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,

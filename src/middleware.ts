@@ -1,62 +1,58 @@
-import { auth } from "@/lib/auth"
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 // Routes that don't require authentication
 const publicRoutes = [
   "/login",
   "/api/auth",
+  "/admin/setup",
+  "/api/admin/setup",
   "/favicon.ico",
   "/_next",
   "/images",
-  "/assets"
-]
+  "/assets",
+];
 
 // Routes that should redirect to dashboard if authenticated
-const authRoutes = [
-  "/login"
-]
+const authRoutes = ["/login"];
 
 export default auth((req: NextRequest & { auth: unknown }) => {
-  const { nextUrl } = req
-  const isLoggedIn = !!req.auth
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
 
   // Check if the current route is a public route
-  const isPublicRoute = publicRoutes.some(route =>
-    nextUrl.pathname.startsWith(route)
-  )
+  const isPublicRoute = publicRoutes.some((route) => nextUrl.pathname.startsWith(route));
 
   // Check if the current route is an auth route
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname)
+  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
   // Allow public routes
   if (isPublicRoute && !isAuthRoute) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Redirect authenticated users away from auth routes
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl))
+      return NextResponse.redirect(new URL("/dashboard", nextUrl));
     }
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Redirect unauthenticated users to login
   if (!isLoggedIn && !isPublicRoute) {
-    let callbackUrl = nextUrl.pathname
+    let callbackUrl = nextUrl.pathname;
     if (nextUrl.search) {
-      callbackUrl += nextUrl.search
+      callbackUrl += nextUrl.search;
     }
 
-    const encodedCallbackUrl = encodeURIComponent(callbackUrl)
-    return NextResponse.redirect(
-      new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
-    )
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    return NextResponse.redirect(new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl));
   }
 
-  return NextResponse.next()
-})
+  return NextResponse.next();
+});
 
 // Configure which routes should be processed by middleware
 export const config = {
@@ -69,6 +65,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, etc.)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
-  ]
-}
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};
