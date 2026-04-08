@@ -49,9 +49,10 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const params = Object.fromEntries(searchParams.entries());
 
     // Parse and validate query parameters
-    const filters = creditFiltersSchema.parse(searchParams.entries());
+    const filters = creditFiltersSchema.parse(params);
 
     // Convert date strings to Date objects
     const processedFilters = {

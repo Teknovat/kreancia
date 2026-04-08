@@ -83,7 +83,7 @@ export const ClientOperations = {
     try {
       const merchant = await rawPrisma.merchant.findUnique({
         where: { id: session.merchantId },
-        select: { id: true, email: true }
+        select: { id: true, email: true },
       });
 
       if (!merchant) {

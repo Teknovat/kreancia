@@ -3,19 +3,11 @@
  * Clean, efficient client management interface
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import {
-  Search,
-  Filter,
-  Plus,
-  Users,
-  AlertTriangle,
-  RefreshCw
-} from 'lucide-react';
+import { Search, Filter, Plus, Users, AlertTriangle, RefreshCw } from "lucide-react";
 
-import MainLayout from '@/components/layout/MainLayout';
+import MainLayout from "@/components/layout/MainLayout";
 import {
   Heading,
   Text,
@@ -26,33 +18,51 @@ import {
   Input,
   Metric,
   Container,
-  Grid
-} from '@/components/ui/redesigned';
-import { useClients } from '@/hooks/useClients';
-import { useMerchantCurrency } from '@/hooks/useMerchantCurrency';
-import type { ClientWithStats } from '@/types/client';
+  Grid,
+} from "@/components/ui/redesigned";
+import { useClients } from "@/hooks/useClients";
+import { useMerchantCurrency } from "@/hooks/useMerchantCurrency";
+import type { ClientWithStats } from "@/types/client";
 
 /**
  * Client Table - Clean, scannable data presentation
  */
 interface ClientTableProps {
   clients: ClientWithStats[];
+  totalCount: number;
   loading: boolean;
   onEdit: (client: ClientWithStats) => void;
   onDelete: (client: ClientWithStats) => void;
   formatAmount: (amount: number) => string;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: ClientTableProps) {
+function ClientTable({
+  clients,
+  totalCount,
+  loading,
+  onEdit,
+  onDelete,
+  formatAmount,
+  currentPage,
+  totalPages,
+  onPageChange,
+}: ClientTableProps) {
+  // Use server-side pagination - clients already contains the correct page data
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <Heading level={3} variant="subtitle">Clients</Heading>
+          <Heading level={3} variant="subtitle">
+            Clients
+          </Heading>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex justify-between items-center py-4 border-b border-gray-100 last:border-b-0">
                 <div className="space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-48"></div>
@@ -72,11 +82,11 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
       <Card>
         <CardContent className="text-center py-12">
           <Users size={48} className="mx-auto text-gray-300 mb-4" />
-          <Heading level={3} variant="subtitle" className="mb-2">Aucun client trouvé</Heading>
+          <Heading level={3} variant="subtitle" className="mb-2">
+            Aucun client trouvé
+          </Heading>
           <Text className="text-gray-500 mb-6">Commencez par créer votre premier client</Text>
-          <Button icon={<Plus size={16} />}>
-            Nouveau Client
-          </Button>
+          <Button icon={<Plus size={16} />}>Nouveau Client</Button>
         </CardContent>
       </Card>
     );
@@ -86,7 +96,9 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <Heading level={3} variant="subtitle">Clients ({clients.length})</Heading>
+          <Heading level={3} variant="subtitle">
+            Clients ({totalCount})
+          </Heading>
           <Button variant="secondary" size="sm">
             <Filter size={16} />
           </Button>
@@ -101,7 +113,8 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
               <div className="flex-1">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-gray-900 text-white flex items-center justify-center font-bold text-sm">
-                    {client.firstName.charAt(0)}{client.lastName.charAt(0)}
+                    {client.firstName.charAt(0)}
+                    {client.lastName.charAt(0)}
                   </div>
 
                   <div className="space-y-1">
@@ -120,45 +133,37 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
               <div className="flex items-center space-x-8">
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Encours</p>
-                  <p className="font-bold text-lg text-gray-900">
-                    {formatAmount(client.outstandingAmount || 0)}
-                  </p>
+                  <p className="font-bold text-lg text-gray-900">{formatAmount(client.outstandingAmount || 0)}</p>
                 </div>
 
                 {client.overdueAmount > 0 && (
                   <div className="text-right">
                     <p className="text-sm font-medium text-red-600 uppercase tracking-wide">En Retard</p>
-                    <p className="font-bold text-lg text-red-600">
-                      {formatAmount(client.overdueAmount)}
-                    </p>
+                    <p className="font-bold text-lg text-red-600">{formatAmount(client.overdueAmount)}</p>
                   </div>
                 )}
 
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Statut</p>
-                  <span className={`inline-block px-2 py-1 text-xs font-bold uppercase tracking-wide ${
-                    client.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                    client.status === 'INACTIVE' ? 'bg-gray-100 text-gray-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
+                  <span
+                    className={`inline-block px-2 py-1 text-xs font-bold uppercase tracking-wide ${
+                      client.status === "ACTIVE"
+                        ? "bg-green-100 text-green-800"
+                        : client.status === "INACTIVE"
+                          ? "bg-gray-100 text-gray-800"
+                          : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {client.status}
                   </span>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(client)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(client)}>
                     Modifier
                   </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => onDelete(client)}
-                  >
+                  <Button variant="danger" size="sm" onClick={() => onDelete(client)}>
                     Supprimer
                   </Button>
                 </div>
@@ -167,6 +172,35 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="border-t-2 border-gray-200 p-4 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <Text className="text-sm text-gray-600">
+              Page {currentPage} sur {totalPages}
+            </Text>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Suivant
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
@@ -175,21 +209,24 @@ function ClientTable({ clients, loading, onEdit, onDelete, formatAmount }: Clien
  * Main Clients Page Component
  */
 export default function ClientsPageRedesigned() {
-  const {
-    clients,
-    totalCount: _totalCount,
-    totalPages: _totalPages,
-    stats,
-    loading,
-    error,
-    refetch,
-    deleteClient,
-    filters: _filters,
-    setFilters: _setFilters
-  } = useClients();
+  const { clients, totalCount, totalPages, stats, loading, error, refetch, deleteClient, filters, setFilters } =
+    useClients();
 
   const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency();
-  const [searchQuery, setSearchQuery] = useState('');
+
+  // Use the page from the hook's filters
+  const currentPage = filters.page;
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  // Handle search with debounce
+  const handleSearchChange = (value: string) => {
+    // Reset to page 1 when searching
+    setFilters((prev) => ({ ...prev, search: value, page: 1 }));
+  };
 
   const handleEdit = (client: ClientWithStats) => {
     // Navigation logic
@@ -211,7 +248,7 @@ export default function ClientsPageRedesigned() {
   };
 
   const handleNewClient = () => {
-    window.location.href = '/clients/new';
+    window.location.href = "/clients/new";
   };
 
   return (
@@ -221,25 +258,18 @@ export default function ClientsPageRedesigned() {
         <Container className="py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <Heading level={1} variant="display">Clients</Heading>
-              <Text className="text-lg mt-2">
-                Gestion de votre base clients
-              </Text>
+              <Heading level={1} variant="display">
+                Clients
+              </Heading>
+              <Text className="text-lg mt-2">Gestion de votre base clients</Text>
             </div>
 
             <div className="flex items-center space-x-4">
-              <Button
-                variant="secondary"
-                onClick={refetch}
-                icon={<RefreshCw size={16} />}
-              >
+              <Button variant="secondary" onClick={refetch} icon={<RefreshCw size={16} />}>
                 Actualiser
               </Button>
 
-              <Button
-                onClick={handleNewClient}
-                icon={<Plus size={16} />}
-              >
+              <Button onClick={handleNewClient} icon={<Plus size={16} />}>
                 Nouveau Client
               </Button>
             </div>
@@ -250,8 +280,8 @@ export default function ClientsPageRedesigned() {
             <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
             <Input
               placeholder="Rechercher un client..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={filters.search}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -310,10 +340,14 @@ export default function ClientsPageRedesigned() {
         {/* Client Table */}
         <ClientTable
           clients={clients}
+          totalCount={totalCount}
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
           formatAmount={formatAmount}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
         />
       </Container>
     </MainLayout>

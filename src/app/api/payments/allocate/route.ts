@@ -159,7 +159,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const { clientId } = availableCreditsSchema.parse(searchParams.entries());
+    const params = Object.fromEntries(searchParams.entries());
+
+    const { clientId } = availableCreditsSchema.parse(params);
 
     // Create credit service instance
     const creditService = new CreditService(session.merchantId);

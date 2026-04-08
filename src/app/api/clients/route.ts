@@ -11,13 +11,20 @@ import { ClientOperations } from "@/utils/database";
 import { z } from "zod";
 
 // Helper function to handle optional strings that can be empty or omitted
-const optionalString = z.string().optional().transform(val => val === "" ? undefined : val);
+const optionalString = z
+  .string()
+  .optional()
+  .transform((val) => (val === "" ? undefined : val));
 
 // Helper function for optional email that can be empty or omitted
-const optionalEmail = z.string().optional().transform(val => {
-  if (!val || val === "") return undefined;
-  return val;
-}).pipe(z.string().email().optional());
+const optionalEmail = z
+  .string()
+  .optional()
+  .transform((val) => {
+    if (!val || val === "") return undefined;
+    return val;
+  })
+  .pipe(z.string().email().optional());
 
 // Validation schema for creating clients
 const createClientSchema = z.object({
@@ -31,7 +38,6 @@ const createClientSchema = z.object({
   creditLimit: z.number().positive().optional().nullable(),
   paymentTermDays: z.number().int().positive().default(30),
 });
-
 
 // Validation schema for pagination and filtering
 const listClientsSchema = z.object({
@@ -50,8 +56,8 @@ const listClientsSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-
-    const { page, limit, orderBy, order, hasOverdue, search } = listClientsSchema.parse(searchParams.entries());
+    const params = Object.fromEntries(searchParams.entries());
+    const { page, limit, orderBy, order, hasOverdue, search } = listClientsSchema.parse(params);
 
     const skip = (page - 1) * limit;
 
@@ -138,21 +144,29 @@ export async function GET(request: NextRequest) {
         );
       }, 0),
       overdueClients: allClients.filter((client) => {
-        return client.credits.some((credit) =>
-          credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0
+        return client.credits.some(
+          (credit) => credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0,
         );
       }).length,
       avgCreditLimit:
-        allClients.length > 0 ? allClients.reduce((sum, c) => sum + Number(c.creditLimit || 0), 0) / allClients.length : 0,
+        allClients.length > 0
+          ? allClients.reduce((sum, c) => sum + Number(c.creditLimit || 0), 0) / allClients.length
+          : 0,
     };
 
     // Filter clients by overdue if requested
     let filteredClients = clients;
     if (hasOverdue) {
-      filteredClients = clients.filter((client: any) =>
-        client.credits && client.credits.some((credit: any) =>
-          credit.status === "OPEN" && credit.dueDate && credit.dueDate < new Date() && Number(credit.remainingAmount) > 0
-        )
+      filteredClients = clients.filter(
+        (client: any) =>
+          client.credits &&
+          client.credits.some(
+            (credit: any) =>
+              credit.status === "OPEN" &&
+              credit.dueDate &&
+              credit.dueDate < new Date() &&
+              Number(credit.remainingAmount) > 0,
+          ),
       );
     }
 
@@ -174,9 +188,10 @@ export async function GET(request: NextRequest) {
           }, 0)
         : 0;
 
-      const lastActivity = client.credits && client.credits.length > 0
-        ? new Date(Math.max(...client.credits.map((c: any) => new Date(c.createdAt).getTime())))
-        : client.updatedAt;
+      const lastActivity =
+        client.credits && client.credits.length > 0
+          ? new Date(Math.max(...client.credits.map((c: any) => new Date(c.createdAt).getTime())))
+          : client.updatedAt;
 
       // Calculate status based on outstanding and overdue amounts
       let status: "ACTIVE" | "INACTIVE" | "SUSPENDED" = "ACTIVE";
