@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, User, DollarSign, Calendar, FileText, AlertTriangle, Search } from "lucide-react";
+import { ArrowLeft, Save, User, DollarSign, Calendar, FileText, AlertTriangle, Search, Loader2 } from "lucide-react";
 
 import MainLayout from "@/components/layout/MainLayout";
 
@@ -33,9 +33,10 @@ export default function NewCreditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [clients, setClients] = useState<Client[]>([]);
-  const [_isLoadingClients, setIsLoadingClients] = useState(true);
+  const [isLoadingClients, setIsLoadingClients] = useState(false);
   const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     clientId: searchParams?.get("clientId") || "",
@@ -45,11 +46,16 @@ export default function NewCreditPage() {
     dueDate: "",
   });
 
-  // Load clients
+  // Load clients with debounced search
   useEffect(() => {
-    const fetchClients = async () => {
+    const fetchClients = async (searchQuery: string = "") => {
+      setIsLoadingClients(true);
       try {
-        const response = await fetch("/api/clients");
+        const url = searchQuery
+          ? `/api/clients?search=${encodeURIComponent(searchQuery)}`
+          : "/api/clients?limit=50"; // Load more clients when no search
+
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setClients(data.data?.clients || []);
@@ -61,19 +67,50 @@ export default function NewCreditPage() {
       }
     };
 
-    fetchClients();
+    // Clear existing timer
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+
+    // Set new timer for debounced search
+    const timer = setTimeout(() => {
+      fetchClients(clientSearch);
+    }, 300) as unknown as NodeJS.Timeout;
+
+    setSearchDebounceTimer(timer);
+
+    // Cleanup function
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientSearch]);
+
+  // Initial load of clients
+  useEffect(() => {
+    if (clientSearch === "") {
+      setIsLoadingClients(true);
+      fetch("/api/clients?limit=50")
+        .then(response => response.json())
+        .then(data => setClients(data.data?.clients || []))
+        .catch(error => console.error("Error loading clients:", error))
+        .finally(() => setIsLoadingClients(false));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Filter clients based on search
-  const filteredClients = clients.filter((client) => {
-    const fullName = `${client.firstName} ${client.lastName}`.toLowerCase();
-    const businessName = client.businessName?.toLowerCase() || "";
-    const search = clientSearch.toLowerCase();
-
-    return fullName.includes(search) || businessName.includes(search) || client?.email?.toLowerCase().includes(search);
-  });
-
   const selectedClient = clients.find((c) => c.id === formData.clientId);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
@@ -197,22 +234,33 @@ export default function NewCreditPage() {
                   />
 
                   {/* Client Dropdown */}
-                  {showClientDropdown && filteredClients.length > 0 && (
+                  {showClientDropdown && (
                     <div className="absolute top-full left-0 right-0 z-10 border-2 border-gray-900 bg-white max-h-60 overflow-y-auto">
-                      {filteredClients.map((client) => (
-                        <button
-                          key={client.id}
-                          type="button"
-                          onClick={() => selectClient(client)}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0"
-                        >
-                          <div className="font-medium">
-                            {client.firstName} {client.lastName}
-                          </div>
-                          {client.businessName && <div className="text-sm text-gray-600">{client.businessName}</div>}
-                          <div className="text-xs text-gray-500">{client.email}</div>
-                        </button>
-                      ))}
+                      {isLoadingClients ? (
+                        <div className="px-4 py-8 flex items-center justify-center">
+                          <Loader2 size={24} className="animate-spin text-gray-400" />
+                          <span className="ml-2 text-gray-600">Recherche en cours...</span>
+                        </div>
+                      ) : clients.length > 0 ? (
+                        clients.map((client) => (
+                          <button
+                            key={client.id}
+                            type="button"
+                            onClick={() => selectClient(client)}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0"
+                          >
+                            <div className="font-medium">
+                              {client.firstName} {client.lastName}
+                            </div>
+                            {client.businessName && <div className="text-sm text-gray-600">{client.businessName}</div>}
+                            <div className="text-xs text-gray-500">{client.email}</div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-8 text-center text-gray-600">
+                          Aucun client trouvé
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

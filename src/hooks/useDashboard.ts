@@ -64,8 +64,8 @@ export function useDashboard(): UseDashboardResult {
       // Fetch multiple data sources in parallel
       const [clientsRes, creditsRes, paymentsRes] = await Promise.all([
         fetch("/api/clients"),
-        fetch("/api/credits?limit=1000"), // Get all credits for statistics
-        fetch("/api/payments?limit=1000"), // Get all payments for statistics
+        fetch("/api/credits?limit=100"), // Get all credits for statistics
+        fetch("/api/payments?limit=100"), // Get all payments for statistics
       ]);
 
       if (!clientsRes.ok || !creditsRes.ok || !paymentsRes.ok) {
