@@ -104,7 +104,7 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
         updatedAt: new Date(credit.updatedAt),
         dueDate: credit.dueDate ? new Date(credit.dueDate) : null,
         paidAmount: parseFloat(credit.totalAmount || "0") - parseFloat(credit.remainingAmount || "0"),
-        allocations: (credit.allocations || []).map((allocation: any) => ({
+        paymentAllocations: (credit.paymentAllocations || []).map((allocation: any) => ({
           ...allocation,
           payment: {
             ...allocation.payment,

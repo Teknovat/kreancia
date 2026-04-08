@@ -15,11 +15,13 @@ export interface Client {
   email?: string;
   phone?: string;
   address?: string;
+  status?: string;
   businessName?: string;
   taxId?: string;
   creditLimit?: number;
   paymentTermDays: number;
   merchantId: string;
+  lastActivity?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

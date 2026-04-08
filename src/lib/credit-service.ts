@@ -98,13 +98,12 @@ export class CreditService {
         lastName: creditData.client.lastName,
         fullName: `${creditData.client.firstName} ${creditData.client.lastName}`,
       },
-      allocations:
+      paymentAllocations:
         creditData.paymentAllocations?.map((allocation: any) => ({
           id: allocation.id,
-          amount: Number(allocation.amount),
+          allocatedAmount: Number(allocation.allocatedAmount),
           paymentId: allocation.paymentId,
           payment: {
-            id: allocation.payment.id,
             amount: Number(allocation.payment.amount),
             paymentDate: allocation.payment.paymentDate,
             method: allocation.payment.method,

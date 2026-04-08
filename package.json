@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:init": "prisma db push --accept-data-loss && tsx scripts/init-db.ts",
+    "db:init": "prisma db push && tsx scripts/init-db.ts",
     "db:reset": "prisma db push --force-reset && tsx scripts/init-db.ts && npm run db:seed",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",

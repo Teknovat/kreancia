@@ -49,12 +49,11 @@ export interface CreditWithDetails {
     fullName: string
     businessName?: string | null
   }
-  allocations: {
+  paymentAllocations: {
     id: string
-    amount: number           // Simplifié: toujours number
+    allocatedAmount: number   // Simplifié: toujours number
     paymentId: string
     payment: {
-      id: string
       amount: number         // Simplifié: toujours number
       paymentDate: Date
       method: string

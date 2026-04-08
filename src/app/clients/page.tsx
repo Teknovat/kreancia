@@ -33,6 +33,7 @@ interface ClientTableProps {
   loading: boolean;
   onEdit: (client: ClientWithStats) => void;
   onDelete: (client: ClientWithStats) => void;
+  onView: (client: ClientWithStats) => void;
   formatAmount: (amount: number) => string;
   currentPage: number;
   totalPages: number;
@@ -45,6 +46,7 @@ function ClientTable({
   loading,
   onEdit,
   onDelete,
+  onView,
   formatAmount,
   currentPage,
   totalPages,
@@ -160,6 +162,9 @@ function ClientTable({
 
                 {/* Actions */}
                 <div className="flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" onClick={() => onView(client)}>
+                    Voir
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => onEdit(client)}>
                     Modifier
                   </Button>
@@ -249,6 +254,10 @@ export default function ClientsPageRedesigned() {
 
   const handleNewClient = () => {
     window.location.href = "/clients/new";
+  };
+
+  const handleView = (client: ClientWithStats) => {
+    window.location.href = `/clients/${client.id}`;
   };
 
   return (
@@ -344,6 +353,7 @@ export default function ClientsPageRedesigned() {
           loading={loading}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onView={handleView}
           formatAmount={formatAmount}
           currentPage={currentPage}
           totalPages={totalPages}
