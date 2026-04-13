@@ -33,6 +33,7 @@ model Merchant {
   credits           Credit[]
   payments          Payment[]
   paymentAllocations PaymentAllocation[]
+  clientCreditBalances ClientCreditBalance[]
 
   // Indexes for performance
   @@index([email])
@@ -68,6 +69,7 @@ model Client {
   credits            Credit[]
   payments           Payment[]
   paymentAllocations PaymentAllocation[]
+  creditBalance      ClientCreditBalance?
 
   // Indexes for multi-tenant queries
   @@index([merchantId])
@@ -172,6 +174,29 @@ model PaymentAllocation {
   @@index([merchantId, clientId])
   @@index([paymentId, creditId])
   @@map("payment_allocations")
+}
+
+// Client Credit Balance model for surplus payment management
+model ClientCreditBalance {
+  id          String   @id @default(cuid())
+  balance     Decimal  @db.Decimal(10, 2) @default(0)
+
+  // Multi-tenant relationships
+  merchantId  String
+  clientId    String   @unique // Un seul solde par client
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  merchant    Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([merchantId])
+  @@index([clientId])
+  @@map("client_credit_balances")
 }
 
 // Enums

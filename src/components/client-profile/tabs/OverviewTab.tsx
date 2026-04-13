@@ -242,7 +242,7 @@ export default function OverviewTab({ client, recentActivity, onRefresh }: Overv
       <div className="mb-8">
         <TabSectionHeader title="Métriques Clés" description="Vue d'ensemble des performances financières du client" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <MetricCard title="Crédits Accordés" value={metrics.totalCredits} icon={CreditCard} color="blue" />
 
           <MetricCard
@@ -266,6 +266,13 @@ export default function OverviewTab({ client, recentActivity, onRefresh }: Overv
             value={`${metrics.creditUtilizationRate}%`}
             icon={TrendingUp}
             color={metrics.creditUtilizationRate > 80 ? "red" : metrics.creditUtilizationRate > 60 ? "amber" : "green"}
+          />
+
+          <MetricCard
+            title="Solde Créditeur"
+            value={metrics.availableCreditBalance || 0}
+            icon={DollarSign}
+            color={metrics.availableCreditBalance && metrics.availableCreditBalance > 0 ? "green" : "blue"}
           />
         </div>
       </div>
@@ -356,6 +363,12 @@ export default function OverviewTab({ client, recentActivity, onRefresh }: Overv
               <div className="flex justify-between">
                 <span className="text-slate-600">Limite :</span>
                 <span className="font-medium">{client.creditLimit || "Non définie"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Solde créditeur :</span>
+                <span className={`font-medium ${client.creditBalance && client.creditBalance > 0 ? 'text-green-600' : 'text-slate-600'}`}>
+                  {client.creditBalance || 0} TND
+                </span>
               </div>
             </div>
           </div>

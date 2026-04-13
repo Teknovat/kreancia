@@ -51,6 +51,80 @@ export class PaymentService {
   }
 
   /**
+   * Add amount to client's credit balance (surplus management)
+   */
+  async addToClientCreditBalance(clientId: string, amount: number, tx?: any): Promise<void> {
+    const executeUpdate = async (client: any) => {
+      await client.clientCreditBalance.upsert({
+        where: { clientId },
+        update: {
+          balance: { increment: new Decimal(amount) }
+        },
+        create: {
+          clientId,
+          merchantId: this.merchantId,
+          balance: new Decimal(amount)
+        }
+      });
+    };
+
+    if (tx) {
+      await executeUpdate(tx);
+    } else {
+      await withSecureTransaction(executeUpdate);
+    }
+  }
+
+  /**
+   * Get client's current credit balance
+   */
+  async getClientCreditBalance(clientId: string): Promise<number> {
+    const client = await this.getSecureClient();
+    const balance = await client.clientCreditBalance.findUnique({
+      where: { clientId }
+    });
+    return balance ? Number(balance.balance) : 0;
+  }
+
+  /**
+   * Use client credit balance to pay for a credit
+   */
+  async useClientCreditBalance(clientId: string, creditId: string, maxAmount: number, tx?: any): Promise<number> {
+    const executeUse = async (client: any) => {
+      const balance = await client.clientCreditBalance.findUnique({
+        where: { clientId }
+      });
+
+      if (!balance || Number(balance.balance) <= 0.01) {
+        return 0; // No balance available
+      }
+
+      const availableBalance = Number(balance.balance);
+      const amountToUse = Math.min(availableBalance, maxAmount);
+
+      if (amountToUse <= 0.01) {
+        return 0;
+      }
+
+      // Reduce the credit balance
+      await client.clientCreditBalance.update({
+        where: { clientId },
+        data: {
+          balance: new Decimal(Math.max(0, availableBalance - amountToUse))
+        }
+      });
+
+      return amountToUse;
+    };
+
+    if (tx) {
+      return await executeUse(tx);
+    } else {
+      return await withSecureTransaction(executeUse);
+    }
+  }
+
+  /**
    * Transform database payment to PaymentWithDetails
    */
   private transformPaymentWithDetails(paymentData: any): PaymentWithDetails {
@@ -171,6 +245,11 @@ export class PaymentService {
       await executeAllocation(tx);
     } else {
       await withSecureTransaction(executeAllocation);
+    }
+
+    // Store any remaining amount as client credit balance
+    if (remainingPaymentAmount > 0.01) {
+      await this.addToClientCreditBalance(clientId, remainingPaymentAmount, tx || undefined);
     }
 
     return {

@@ -6,6 +6,18 @@
 import { Decimal } from "@prisma/client/runtime/library";
 
 /**
+ * Client credit balance for surplus payments
+ */
+export interface ClientCreditBalance {
+  id: string;
+  balance: number;
+  merchantId: string;
+  clientId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
  * Base client data from database
  */
 export interface Client {
@@ -34,6 +46,7 @@ export interface ClientWithStats extends Client {
   totalCredits: number;
   outstandingAmount: number;
   overdueAmount: number;
+  creditBalance?: number; // Nouveau: Solde créditeur disponible
   lastActivity?: Date;
   creditCount: number;
   paymentCount: number;

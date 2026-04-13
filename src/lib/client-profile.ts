@@ -34,6 +34,7 @@ export function calculateClientMetrics(client: ClientWithStats): ClientMetrics {
     totalPaid,
     totalOutstanding,
     totalOverdue,
+    availableCreditBalance: client.creditBalance || 0,
     averagePaymentTime,
     creditUtilizationRate: Math.round(creditUtilizationRate * 100) / 100,
     paymentComplianceRate: Math.round(paymentComplianceRate * 100) / 100,

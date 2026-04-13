@@ -219,6 +219,11 @@ export class ClientService {
             createdAt: true,
           },
         },
+        creditBalance: {
+          select: {
+            balance: true,
+          },
+        },
         _count: {
           select: {
             credits: true,
@@ -263,6 +268,7 @@ export class ClientService {
       totalCredits,
       outstandingAmount,
       overdueAmount,
+      creditBalance: clientData.creditBalance ? Number(clientData.creditBalance.balance) : 0,
       lastActivity: lastActivity ?? undefined,
       creditCount: clientData._count.credits,
       paymentCount: clientData._count.payments,

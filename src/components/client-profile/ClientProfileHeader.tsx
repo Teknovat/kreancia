@@ -324,7 +324,7 @@ export default function ClientProfileHeader({
 
       {/* Key Metrics Bar */}
       <div className="bg-slate-50 px-6 py-4 border-t border-slate-100">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <MetricCard
             label="Limite de crédit"
             value={client.creditLimit ? String(client.creditLimit) : "0 TND"}
@@ -346,6 +346,14 @@ export default function ClientProfileHeader({
             icon={AlertTriangle}
             color={client.overdueAmount && client.overdueAmount > 0 ? "red" : "slate"}
             trend={client.overdueAmount && client.overdueAmount > 0 ? "down" : "neutral"}
+          />
+
+          <MetricCard
+            label="Solde créditeur"
+            value={String(client.creditBalance || 0)}
+            icon={TrendingUp}
+            color={client.creditBalance && client.creditBalance > 0 ? "green" : "slate"}
+            trend={client.creditBalance && client.creditBalance > 0 ? "up" : "neutral"}
           />
 
           <MetricCard

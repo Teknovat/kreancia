@@ -282,22 +282,82 @@ export class CreditService {
    * Create a new credit
    */
   async createCredit(data: CreditFormData): Promise<Credit> {
-    const client = await this.getSecureClient();
+    let credit: Credit;
 
-    const totalAmountDecimal = Number(data.totalAmount);
-    const initialStatus = this.calculateCreditStatus(totalAmountDecimal, data.dueDate || null);
+    await withSecureTransaction(async (tx) => {
+      const totalAmountDecimal = Number(data.totalAmount);
+      let remainingAmount = totalAmountDecimal;
 
-    return await client.credit.create({
-      data: {
-        label: data.label,
-        totalAmount: totalAmountDecimal,
-        remainingAmount: totalAmountDecimal, // Initially, nothing is paid
-        dueDate: data.dueDate || null,
-        status: initialStatus,
-        clientId: data.clientId,
-        merchantId: this.merchantId,
-      },
+      // Create the credit first
+      credit = await tx.credit.create({
+        data: {
+          label: data.label,
+          totalAmount: totalAmountDecimal,
+          remainingAmount: totalAmountDecimal, // Initially, nothing is paid
+          dueDate: data.dueDate || null,
+          status: "OPEN", // Will be recalculated after applying credit balance
+          clientId: data.clientId,
+          merchantId: this.merchantId,
+        },
+      });
+
+      // Apply client credit balance automatically
+      const appliedAmount = await this.applyClientCreditBalance(data.clientId, credit.id, totalAmountDecimal, tx);
+
+      if (appliedAmount > 0) {
+        remainingAmount = totalAmountDecimal - appliedAmount;
+        const newStatus = this.calculateCreditStatus(remainingAmount, data.dueDate || null);
+
+        // Update the credit with new remaining amount and status
+        credit = await tx.credit.update({
+          where: { id: credit.id },
+          data: {
+            remainingAmount: Math.max(0, remainingAmount),
+            status: newStatus,
+          },
+        });
+      }
     });
+
+    return credit!;
+  }
+
+  /**
+   * Apply client credit balance to a credit
+   */
+  private async applyClientCreditBalance(clientId: string, creditId: string, maxAmount: number, tx?: any): Promise<number> {
+    const executeApply = async (client: any) => {
+      const balance = await client.clientCreditBalance.findUnique({
+        where: { clientId }
+      });
+
+      if (!balance || Number(balance.balance) <= 0.01) {
+        return 0; // No balance available
+      }
+
+      const availableBalance = Number(balance.balance);
+      const amountToApply = Math.min(availableBalance, maxAmount);
+
+      if (amountToApply <= 0.01) {
+        return 0;
+      }
+
+      // Reduce the client's credit balance
+      await client.clientCreditBalance.update({
+        where: { clientId },
+        data: {
+          balance: Math.max(0, availableBalance - amountToApply)
+        }
+      });
+
+      return amountToApply;
+    };
+
+    if (tx) {
+      return await executeApply(tx);
+    } else {
+      return await withSecureTransaction(executeApply);
+    }
   }
 
   /**

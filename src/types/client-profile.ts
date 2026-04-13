@@ -152,6 +152,7 @@ export interface ClientMetrics {
   totalPaid: number;
   totalOutstanding: number;
   totalOverdue: number;
+  availableCreditBalance: number; // Nouveau: Solde créditeur disponible
   averagePaymentTime: number;
   creditUtilizationRate: number;
   paymentComplianceRate: number;
