@@ -135,7 +135,8 @@ export function usePayments(initialFilters?: Partial<PaymentFilters>): UsePaymen
       console.log("Processed payments:", paymentsWithTypes);
 
       setPayments(paymentsWithTypes);
-      setTotalCount(data.pagination?.total || 0);
+      const apiTotal = data.pagination?.total || 0;
+      setTotalCount(apiTotal);
       setTotalPages(data.pagination?.totalPages || 0);
 
       // Calculate stats from the response
@@ -143,7 +144,7 @@ export function usePayments(initialFilters?: Partial<PaymentFilters>): UsePaymen
       const _totalAllocated = paymentsWithTypes.reduce((sum: number, p: any) => sum + p.totalAllocated, 0);
 
       const calculatedStats = {
-        totalPayments: paymentsWithTypes.length,
+        totalPayments: apiTotal,
         totalAmount,
         amountThisMonth: 0, // Would need backend calculation
         paymentsThisMonth: 0, // Would need backend calculation

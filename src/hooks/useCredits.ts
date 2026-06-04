@@ -116,12 +116,13 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
       console.log("Processed credits:", creditsWithTypes);
 
       setCredits(creditsWithTypes);
-      setTotalCount(data.pagination?.total || 0);
+      const apiTotal = data.pagination?.total || 0;
+      setTotalCount(apiTotal);
       setTotalPages(data.pagination?.totalPages || 0);
 
       // Calculate stats from the response
       const calculatedStats = {
-        totalCredits: creditsWithTypes.length,
+        totalCredits: apiTotal,
         openCredits: creditsWithTypes.filter((c: any) => c.status === "OPEN").length,
         paidCredits: creditsWithTypes.filter((c: any) => c.status === "PAID").length,
         overdueCredits: creditsWithTypes.filter((c: any) => c.status === "OVERDUE").length,

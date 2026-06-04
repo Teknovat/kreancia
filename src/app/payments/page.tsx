@@ -221,20 +221,26 @@ export default function PaymentsPage() {
   const router = useRouter();
   const {
     payments,
-    totalCount: _totalCount,
+    totalCount,
+    totalPages,
     stats,
     loading,
     error,
     refetch,
-    filters: _filters,
+    filters,
     setFilters,
   } = usePayments();
 
   const { formatAmount, isLoading: currencyLoading } = useMerchantCurrency();
   const [searchQuery, setSearchQuery] = useState("");
+  const currentPage = filters.page;
 
   const handleNewPayment = () => {
     router.push("/payments/new");
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
   };
 
   const handleViewPayment = (payment: PaymentWithDetails) => {
@@ -361,6 +367,33 @@ export default function PaymentsPage() {
 
           {/* Payments Table */}
           <PaymentTable payments={payments} loading={loading} formatAmount={formatAmount} onView={handleViewPayment} />
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="border-2 border-gray-200 border-t-0 bg-white p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} sur {totalPages} — {totalCount} paiements
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-all font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Précédent
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white transition-all font-medium text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>
