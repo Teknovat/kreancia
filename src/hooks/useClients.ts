@@ -66,7 +66,7 @@ export function useClients(initialFilters?: Partial<ClientFilters>): UseClientsR
 
       // Build query parameters matching API schema
       const params = new URLSearchParams();
-      if (filters.search) params.append("q", filters.search);
+      if (filters.search) params.append("search", filters.search);
       if (filters.status !== "ALL") params.append("status", filters.status);
       if (filters.hasOverdue) params.append("hasOverdue", "true");
 
