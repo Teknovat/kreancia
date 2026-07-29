@@ -61,11 +61,13 @@ export function useDashboard(): UseDashboardResult {
   // Fetch dashboard statistics
   const fetchDashboardStats = useCallback(async () => {
     try {
-      // Fetch multiple data sources in parallel
+      // Fetch multiple data sources in parallel.
+      // limit=10 is enough for the recent-activity feed; stats come from the
+      // server-side aggregates returned in each response's `stats` key.
       const [clientsRes, creditsRes, paymentsRes] = await Promise.all([
-        fetch("/api/clients"),
-        fetch("/api/credits?limit=100"), // Get all credits for statistics
-        fetch("/api/payments?limit=100"), // Get all payments for statistics
+        fetch("/api/clients?limit=10"),
+        fetch("/api/credits?limit=10&sortBy=createdAt&sortOrder=desc"),
+        fetch("/api/payments?limit=10&sortBy=paymentDate&sortOrder=desc"),
       ]);
 
       if (!clientsRes.ok || !creditsRes.ok || !paymentsRes.ok) {
@@ -82,43 +84,36 @@ export function useDashboard(): UseDashboardResult {
         throw new Error("API returned error");
       }
 
-      // Calculate statistics
-      const clients = clientsData.data.clients;
+      // Use server-side aggregates for accurate global statistics.
+      // These cover ALL records, not just the page fetched above.
+      const clientStats = clientsData.data.stats;
+      const creditStats = creditsData.stats;
+      const paymentStats = paymentsData.stats;
+
+      // Client stats (from server aggregate)
+      const totalClients = clientStats.totalClients;
+      const activeClients = clientStats.activeClients;
+
+      // Credit stats (from server aggregate)
+      const totalCredits = creditStats.totalCredits;
+      const openCredits = creditStats.openCredits;
+      const paidCredits = creditStats.paidCredits;
+      const overdueCredits = creditStats.overdueCredits;
+      const totalCreditsAmount = (creditStats.totalAmountOpen ?? 0) + (creditStats.totalAmountOverdue ?? 0);
+      const totalOutstandingAmount = creditStats.totalAmountOpen ?? 0;
+      const totalOverdueAmount = creditStats.totalAmountOverdue ?? 0;
+
+      // Payment stats (from server aggregate)
+      const totalPayments = paymentStats.totalPayments;
+      const totalPaymentsAmount = paymentStats.totalAmount;
+      const totalAllocatedAmount = paymentStats.totalAllocated;
+      const totalUnallocatedAmount = paymentStats.totalUnallocated;
+      const paymentsThisMonth = paymentStats.paymentsThisMonth;
+      const amountThisMonth = paymentStats.amountThisMonth;
+
+      // Arrays below are used only for the recent-activity feed (10 most recent items each).
       const credits = creditsData.data;
       const payments = paymentsData.data;
-
-      // Client stats
-      const totalClients = clients.length;
-      const activeClients = clients.filter((c: any) => c.status === "ACTIVE").length;
-
-      // Credit stats
-      const totalCredits = credits.length;
-      const openCredits = credits.filter((c: any) => c.status === "OPEN").length;
-      const paidCredits = credits.filter((c: any) => c.status === "PAID").length;
-      const overdueCredits = credits.filter((c: any) => c.status === "OVERDUE").length;
-
-      const totalCreditsAmount = credits.reduce((sum: number, c: any) => sum + c.totalAmount, 0);
-      const totalOutstandingAmount = credits.reduce((sum: number, c: any) => sum + c.remainingAmount, 0);
-      const totalOverdueAmount = credits
-        .filter((c: any) => c.status === "OVERDUE")
-        .reduce((sum: number, c: any) => sum + c.remainingAmount, 0);
-
-      // Payment stats
-      const totalPayments = payments.length;
-      const totalPaymentsAmount = payments.reduce((sum: number, p: any) => sum + p.amount, 0);
-      const totalAllocatedAmount = payments.reduce((sum: number, p: any) => sum + p.totalAllocated, 0);
-      const totalUnallocatedAmount = payments.reduce((sum: number, p: any) => sum + p.unallocatedAmount, 0);
-
-      // This month stats
-      const thisMonth = new Date();
-      thisMonth.setDate(1);
-      thisMonth.setHours(0, 0, 0, 0);
-
-      const paymentsThisMonth = payments.filter((p: any) => new Date(p.paymentDate) >= thisMonth).length;
-
-      const amountThisMonth = payments
-        .filter((p: any) => new Date(p.paymentDate) >= thisMonth)
-        .reduce((sum: number, p: any) => sum + p.amount, 0);
 
       // Calculate simple trends (mock for now - would need historical data)
       const clientsTrend = 5.2; // % change

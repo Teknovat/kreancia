@@ -135,6 +135,7 @@ export interface CreditSummary {
   openCredits: number
   paidCredits: number
   overdueCredits: number
+  totalCreditAmount: number
   totalAmountOpen: number
   totalAmountOverdue: number
   averageCreditAmount: number

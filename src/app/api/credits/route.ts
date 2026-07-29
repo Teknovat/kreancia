@@ -64,8 +64,11 @@ export async function GET(request: NextRequest) {
     // Create credit service instance
     const creditService = new CreditService(session.merchantId);
 
-    // Get credits with filters
-    const result = await creditService.getCredits(processedFilters);
+    // Get credits and global summary stats in parallel
+    const [result, summary] = await Promise.all([
+      creditService.getCredits(processedFilters),
+      creditService.getCreditSummary(),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -77,6 +80,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(result.total / result.limit),
         hasMore: result.hasMore,
       },
+      stats: summary,
     });
   } catch (error: unknown) {
     console.error("Error fetching credits:", error);

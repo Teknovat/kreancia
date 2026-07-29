@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Plus, Search, RefreshCw, AlertTriangle, Clock, DollarSign, Eye } from "lucide-react";
+import { CreditCard, Plus, Search, RefreshCw, AlertTriangle, Clock, DollarSign, Eye, TrendingDown } from "lucide-react";
 
 import MainLayout from "@/components/layout/MainLayout";
 import { useCredits } from "@/hooks/useCredits";
@@ -237,7 +237,7 @@ export default function CreditsPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="bg-gray-50 border-2 border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -263,7 +263,7 @@ export default function CreditsPage() {
                   <div>
                     <p className="text-sm font-medium text-green-600 uppercase tracking-wide">Montant Total</p>
                     <p className="text-2xl font-black text-green-900">
-                      {loading || currencyLoading ? "..." : formatAmount(stats.totalOutstanding)}
+                      {loading || currencyLoading ? "..." : formatAmount(stats.totalCreditAmount)}
                     </p>
                   </div>
                   <DollarSign size={32} className="text-green-400" />
@@ -277,6 +277,18 @@ export default function CreditsPage() {
                     <p className="text-2xl font-black text-red-900">{loading ? "..." : stats.overdueCredits}</p>
                   </div>
                   <AlertTriangle size={32} className="text-red-400" />
+                </div>
+              </div>
+
+              <div className="bg-orange-50 border-2 border-orange-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-600 uppercase tracking-wide">Montant Restant</p>
+                    <p className="text-2xl font-black text-orange-900">
+                      {loading || currencyLoading ? "..." : formatAmount(stats.totalAmount)}
+                    </p>
+                  </div>
+                  <TrendingDown size={32} className="text-orange-400" />
                 </div>
               </div>
             </div>

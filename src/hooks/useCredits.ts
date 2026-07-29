@@ -17,6 +17,7 @@ interface UseCreditsResponse {
     openCredits: number;
     paidCredits: number;
     overdueCredits: number;
+    totalCreditAmount: number;
     totalAmount: number;
     totalOutstanding: number;
     totalOverdue: number;
@@ -43,6 +44,7 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
     openCredits: 0,
     paidCredits: 0,
     overdueCredits: 0,
+    totalCreditAmount: 0,
     totalAmount: 0,
     totalOutstanding: 0,
     totalOverdue: 0,
@@ -120,22 +122,19 @@ export function useCredits(initialFilters?: Partial<CreditFilters>): UseCreditsR
       setTotalCount(apiTotal);
       setTotalPages(data.pagination?.totalPages || 0);
 
-      // Calculate stats from the response
-      const calculatedStats = {
-        totalCredits: apiTotal,
-        openCredits: creditsWithTypes.filter((c: any) => c.status === "OPEN").length,
-        paidCredits: creditsWithTypes.filter((c: any) => c.status === "PAID").length,
-        overdueCredits: creditsWithTypes.filter((c: any) => c.status === "OVERDUE").length,
-        totalAmount: creditsWithTypes.reduce((sum: number, c: any) => sum + c.totalAmount, 0),
-        totalOutstanding: creditsWithTypes
-          .filter((c: any) => c.status === "OPEN")
-          .reduce((sum: number, c: any) => sum + c.remainingAmount, 0),
-        totalOverdue: creditsWithTypes
-          .filter((c: any) => c.status === "OVERDUE")
-          .reduce((sum: number, c: any) => sum + c.remainingAmount, 0),
-      };
-
-      setStats(calculatedStats);
+      // Use global stats from API response (aggregated across all pages)
+      if (data.stats) {
+        setStats({
+          totalCredits: data.stats.totalCredits,
+          openCredits: data.stats.openCredits,
+          paidCredits: data.stats.paidCredits,
+          overdueCredits: data.stats.overdueCredits,
+          totalCreditAmount: data.stats.totalCreditAmount,
+          totalAmount: data.stats.totalAmountOpen + data.stats.totalAmountOverdue,
+          totalOutstanding: data.stats.totalAmountOpen,
+          totalOverdue: data.stats.totalAmountOverdue,
+        });
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);

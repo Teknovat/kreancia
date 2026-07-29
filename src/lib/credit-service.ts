@@ -483,6 +483,7 @@ export class CreditService {
       openCredits: summary.OPEN?.count || 0,
       paidCredits: summary.PAID?.count || 0,
       overdueCredits: summary.OVERDUE?.count || 0,
+      totalCreditAmount: Number(amountAggregates._sum.totalAmount) || 0,
       totalAmountOpen: summary.OPEN?.totalRemaining || 0,
       totalAmountOverdue: summary.OVERDUE?.totalRemaining || 0,
       averageCreditAmount: Number(amountAggregates._avg.totalAmount) || 0,

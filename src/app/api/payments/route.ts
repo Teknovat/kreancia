@@ -77,8 +77,11 @@ export async function GET(request: NextRequest) {
     // Create payment service instance
     const paymentService = new PaymentService(session.merchantId);
 
-    // Get payments with filters
-    const result = await paymentService.getPayments(processedFilters);
+    // Get payments with filters and global summary stats in parallel
+    const [result, summary] = await Promise.all([
+      paymentService.getPayments(processedFilters),
+      paymentService.getPaymentSummary(),
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -90,6 +93,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(result.total / result.limit),
         hasMore: result.hasMore,
       },
+      stats: summary,
     });
   } catch (error) {
     console.error("Error fetching payments:", error);
